@@ -17,8 +17,151 @@ st.set_page_config(
     layout="centered",
 )
 
-st.title("🚗 ดูรถดิ")
-st.markdown("##### ถ่ายหรืออัปโหลดรูปรถ แล้วเราจะบอกทุกอย่างเกี่ยวกับรถคันนั้น")
+st.markdown("""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&display=swap');
+
+    html, body, [class*="css"] {
+        font-family: 'Prompt', sans-serif;
+    }
+
+    .stApp {
+        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+        min-height: 100vh;
+    }
+
+    .hero {
+        text-align: center;
+        padding: 2.5rem 1rem 1.5rem;
+    }
+
+    .hero-icon {
+        font-size: 4rem;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+    }
+
+    .hero-title {
+        font-size: 3rem;
+        font-weight: 700;
+        background: linear-gradient(90deg, #f7971e, #ffd200);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin: 0;
+    }
+
+    .hero-sub {
+        color: #c0c0d0;
+        font-size: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 1.5rem;
+        backdrop-filter: blur(10px);
+        margin-bottom: 1.5rem;
+    }
+
+    .result-card {
+        background: rgba(247, 151, 30, 0.08);
+        border: 1px solid rgba(247, 151, 30, 0.3);
+        border-radius: 20px;
+        padding: 1.5rem 1.5rem 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .result-title {
+        color: #ffd200;
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+    }
+
+    .result-card p, .result-card li {
+        color: #e0e0f0;
+        line-height: 1.8;
+    }
+
+    .result-card strong {
+        color: #ffd200;
+    }
+
+    /* Tab styling */
+    .stTabs [data-baseweb="tab-list"] {
+        background: rgba(255,255,255,0.05);
+        border-radius: 12px;
+        padding: 4px;
+        gap: 4px;
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        border-radius: 10px;
+        color: #c0c0d0;
+        font-family: 'Prompt', sans-serif;
+        font-weight: 400;
+        padding: 0.5rem 1.5rem;
+    }
+
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(90deg, #f7971e, #ffd200) !important;
+        color: #1a1a2e !important;
+        font-weight: 600 !important;
+    }
+
+    /* File uploader */
+    [data-testid="stFileUploader"] {
+        background: rgba(255,255,255,0.03);
+        border: 2px dashed rgba(255,255,255,0.15);
+        border-radius: 16px;
+        padding: 1rem;
+        transition: border-color 0.3s;
+    }
+
+    [data-testid="stFileUploader"]:hover {
+        border-color: rgba(247, 151, 30, 0.5);
+    }
+
+    /* Camera */
+    [data-testid="stCameraInput"] {
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    /* Spinner */
+    .stSpinner > div {
+        border-top-color: #ffd200 !important;
+    }
+
+    /* Image */
+    [data-testid="stImage"] img {
+        border-radius: 16px;
+        border: 2px solid rgba(255,255,255,0.1);
+    }
+
+    /* Hide streamlit branding */
+    #MainMenu, footer, header {visibility: hidden;}
+
+    .footer {
+        text-align: center;
+        color: rgba(255,255,255,0.3);
+        font-size: 0.8rem;
+        padding: 2rem 0 1rem;
+    }
+
+    .tip-box {
+        background: rgba(255,255,255,0.04);
+        border-left: 3px solid #ffd200;
+        border-radius: 0 10px 10px 0;
+        padding: 0.75rem 1rem;
+        color: #c0c0d0;
+        font-size: 0.88rem;
+        margin-top: 1rem;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 client = anthropic.Anthropic(api_key=api_key)
 
@@ -75,18 +218,27 @@ def identify_car(image_data: bytes, media_type: str) -> str:
     return response.content[0].text
 
 
-st.markdown("---")
+# Hero section
+st.markdown("""
+<div class="hero">
+    <div class="hero-icon">🚗</div>
+    <div class="hero-title">ดูรถดิ</div>
+    <div class="hero-sub">ถ่ายรูปรถ แล้วเราจะบอกทุกอย่างเกี่ยวกับรถคันนั้น</div>
+</div>
+""", unsafe_allow_html=True)
 
-tab1, tab2 = st.tabs(["📁 อัปโหลดรูป", "📷 ถ่ายรูป"])
+# Upload section
+st.markdown('<div class="card">', unsafe_allow_html=True)
+
+tab1, tab2 = st.tabs(["📁  อัปโหลดรูป", "📷  ถ่ายรูป"])
 
 image_data = None
 media_type = None
 
 with tab1:
     uploaded_file = st.file_uploader(
-        "เลือกรูปรถที่ต้องการ",
+        "วางรูปหรือกดเพื่อเลือกไฟล์",
         type=["jpg", "jpeg", "png", "webp"],
-        help="อัปโหลดรูปรถที่ชัดเจน เห็นตัวรถเต็มคัน",
         label_visibility="collapsed",
     )
     if uploaded_file:
@@ -101,22 +253,31 @@ with tab2:
         image_data = camera_photo.read()
         media_type = "image/jpeg"
 
+st.markdown("""
+<div class="tip-box">
+    💡 <strong>เทิป:</strong> รูปที่ดีควรเห็นตัวรถชัดเจน มีแสงเพียงพอ และเห็นด้านหน้าหรือด้านข้างของรถ
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown('</div>', unsafe_allow_html=True)
+
+# Result section
 if image_data:
-    st.markdown("### รูปรถของคุณ")
     img = Image.open(BytesIO(image_data))
     st.image(img, use_container_width=True)
 
-    st.markdown("### ข้อมูลรถ")
-    with st.spinner("กำลังวิเคราะห์รถ..."):
+    with st.spinner("🔍 กำลังวิเคราะห์รถ..."):
         try:
             result = identify_car(image_data, media_type)
+            st.markdown('<div class="result-card">', unsafe_allow_html=True)
+            st.markdown('<div class="result-title">📋 ผลการวิเคราะห์</div>', unsafe_allow_html=True)
             st.markdown(result)
+            st.markdown('</div>', unsafe_allow_html=True)
         except anthropic.AuthenticationError:
-            st.error("API Key ไม่ถูกต้อง กรุณาตรวจสอบ ANTHROPIC_API_KEY")
+            st.error("❌ API Key ไม่ถูกต้อง กรุณาตรวจสอบ ANTHROPIC_API_KEY")
         except anthropic.APIConnectionError:
-            st.error("ไม่สามารถเชื่อมต่อได้ กรุณาตรวจสอบอินเทอร์เน็ต")
+            st.error("❌ ไม่สามารถเชื่อมต่อได้ กรุณาตรวจสอบอินเทอร์เน็ต")
         except Exception as e:
-            st.error(f"เกิดข้อผิดพลาด: {e}")
+            st.error(f"❌ เกิดข้อผิดพลาด: {e}")
 
-st.markdown("---")
-st.caption("ขับเคลื่อนโดย Claude AI — Anthropic")
+st.markdown('<div class="footer">ขับเคลื่อนโดย Claude AI · Anthropic</div>', unsafe_allow_html=True)
