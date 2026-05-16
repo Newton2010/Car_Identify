@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import os
+import re
 from io import BytesIO
 
 import anthropic
@@ -359,6 +360,59 @@ html, body { font-family: 'DM Sans', 'Prompt', sans-serif; }
     margin-top: 1rem !important;
 }
 
+/* ─── Section cards ─── */
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(22px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.sec-card {
+    display: flex;
+    gap: 1.1rem;
+    padding: 1.1rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    animation: slideUp 0.5s cubic-bezier(0.22,1,0.36,1) both;
+    opacity: 0;
+}
+
+.sec-card:last-child { border-bottom: none; padding-bottom: 0; }
+
+.sec-icon-wrap {
+    flex-shrink: 0;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 50%;
+    background: rgba(201,168,76,0.12);
+    border: 1px solid rgba(201,168,76,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    margin-top: 0.1rem;
+}
+
+.sec-content { flex: 1; min-width: 0; }
+
+.sec-title {
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: #C9A84C;
+    margin-bottom: 0.35rem;
+    font-family: 'DM Sans', sans-serif;
+}
+
+.sec-body {
+    color: #e8e8e8;
+    font-size: 0.9rem;
+    line-height: 1.75;
+    font-weight: 300;
+    word-wrap: break-word;
+}
+
+.sec-body strong { color: #fff; font-weight: 600; }
+
 /* ─── Spinner ─── */
 .stSpinner > div { border-top-color: #C9A84C !important; }
 
@@ -468,6 +522,39 @@ def identify_car(image_hash: str, image_data: bytes) -> str:
     return response.content[0].text
 
 
+SECTION_ICONS = ["🏎", "📅", "⚙️", "⚡", "💰", "💡"]
+
+
+def render_result(text: str):
+    sections = re.split(r'(?=\n\d+\.|\A\d+\.)', text.strip())
+    parsed = []
+    for sec in sections:
+        sec = sec.strip()
+        if not sec:
+            continue
+        m = re.match(r'\d+\.\s+\*\*([^*\n]+?)\*\*[:\s]*(.*)', sec, re.DOTALL)
+        if m:
+            parsed.append({"title": m.group(1).strip().rstrip(':'), "body": m.group(2).strip()})
+
+    if not parsed:
+        st.markdown(text)
+        return
+
+    for i, item in enumerate(parsed):
+        icon = SECTION_ICONS[i] if i < len(SECTION_ICONS) else "•"
+        delay = i * 0.13
+        body_html = item["body"].replace("\n", "<br>")
+        body_html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', body_html)
+        st.markdown(f"""
+<div class="sec-card" style="animation-delay:{delay}s">
+    <div class="sec-icon-wrap">{icon}</div>
+    <div class="sec-content">
+        <div class="sec-title">{item["title"]}</div>
+        <div class="sec-body">{body_html}</div>
+    </div>
+</div>""", unsafe_allow_html=True)
+
+
 def stream_identify_car(image_data: bytes):
     compressed = compress_image(image_data)
     image_b64 = base64.standard_b64encode(compressed).decode("utf-8")
@@ -552,6 +639,13 @@ if image_data:
 
     try:
         image_hash = hashlib.md5(image_data).hexdigest()
+
+        if image_hash not in st.session_state:
+            with st.spinner("กำลังวิเคราะห์รถ..."):
+                st.session_state[image_hash] = identify_car(image_hash, image_data)
+
+        result = st.session_state[image_hash]
+
         st.markdown("""
 <div class="result-card">
     <div class="result-card-top"></div>
@@ -561,14 +655,9 @@ if image_data:
     </div>
     <div class="result-card-body">
 """, unsafe_allow_html=True)
-
-        if image_hash in st.session_state:
-            st.markdown(st.session_state[image_hash])
-        else:
-            result = st.write_stream(stream_identify_car(image_data))
-            st.session_state[image_hash] = result
-
+        render_result(result)
         st.markdown("</div></div>", unsafe_allow_html=True)
+
     except anthropic.AuthenticationError:
         st.error("API Key ไม่ถูกต้อง กรุณาตรวจสอบ ANTHROPIC_API_KEY")
     except anthropic.APIConnectionError:
