@@ -53,8 +53,14 @@ st.markdown("""
     }
 
     /* ── App shell ── */
-    .stApp {
-        background: transparent;
+    .stApp,
+    [data-testid="stAppViewContainer"],
+    [data-testid="stHeader"],
+    [data-testid="stToolbar"],
+    section[data-testid="stSidebar"],
+    .main .block-container {
+        background: transparent !important;
+        background-color: transparent !important;
     }
 
     [data-testid="stAppViewContainer"] > .main {
