@@ -9,27 +9,39 @@ from PIL import Image
 
 load_dotenv()
 
-# Support both local .env and Streamlit Cloud secrets
 api_key = os.getenv("ANTHROPIC_API_KEY") or st.secrets.get("ANTHROPIC_API_KEY", "")
 
 st.set_page_config(
-    page_title="Car Identifier",
+    page_title="ดูรถดิ",
     page_icon="🚗",
-    layout="wide",
+    layout="centered",
 )
 
-st.title("🚗 Car Identifier")
-st.markdown("Upload or take a photo of a car to identify it and get detailed information.")
+st.title("🚗 ดูรถดิ")
+st.markdown("##### ถ่ายหรืออัปโหลดรูปรถ แล้วเราจะบอกทุกอย่างเกี่ยวกับรถคันนั้น")
 
 client = anthropic.Anthropic(api_key=api_key)
 
 
+def compress_image(image_data: bytes, max_size: int = 800) -> tuple[bytes, str]:
+    img = Image.open(BytesIO(image_data))
+    img = img.convert("RGB")
+    w, h = img.size
+    if max(w, h) > max_size:
+        ratio = max_size / max(w, h)
+        img = img.resize((int(w * ratio), int(h * ratio)), Image.LANCZOS)
+    buf = BytesIO()
+    img.save(buf, format="JPEG", quality=75)
+    return buf.getvalue(), "image/jpeg"
+
+
 def identify_car(image_data: bytes, media_type: str) -> str:
+    image_data, media_type = compress_image(image_data)
     image_b64 = base64.standard_b64encode(image_data).decode("utf-8")
 
     response = client.messages.create(
-        model="claude-opus-4-7",
-        max_tokens=2048,
+        model="claude-haiku-4-5",
+        max_tokens=1024,
         messages=[
             {
                 "role": "user",
@@ -45,17 +57,14 @@ def identify_car(image_data: bytes, media_type: str) -> str:
                     {
                         "type": "text",
                         "text": (
-                            "Please identify this car and provide detailed information about it. "
-                            "Include the following in your response:\n\n"
-                            "1. **Make & Model**: The manufacturer and model name\n"
-                            "2. **Year**: Estimated year or year range if not exact\n"
-                            "3. **Trim/Variant**: Specific trim level or variant if identifiable\n"
-                            "4. **Engine & Performance**: Engine specs, horsepower, torque\n"
-                            "5. **Key Features**: Notable features and technology\n"
-                            "6. **Price Range**: Approximate original MSRP (new) and current market value\n"
-                            "7. **Fun Facts**: Interesting facts or history about this car\n\n"
-                            "If you cannot identify the exact car, describe what you can see "
-                            "and give your best estimate with confidence level."
+                            "ช่วยระบุรถในรูปนี้และให้ข้อมูลเป็นภาษาไทย โดยมีหัวข้อดังนี้:\n\n"
+                            "1. **ยี่ห้อและรุ่น**: ชื่อผู้ผลิตและรุ่นรถ\n"
+                            "2. **ปีที่ผลิต**: ปีโดยประมาณ\n"
+                            "3. **เครื่องยนต์**: สเปคเครื่องยนต์ แรงม้า แรงบิด\n"
+                            "4. **ฟีเจอร์เด่น**: ความสามารถและเทคโนโลยีที่น่าสนใจ\n"
+                            "5. **ราคา**: ราคาตลาดในไทย (ถ้าทราบ)\n"
+                            "6. **ข้อมูลน่ารู้**: เรื่องน่าสนใจเกี่ยวกับรถคันนี้\n\n"
+                            "ถ้าไม่สามารถระบุได้แน่ชัด ให้บอกว่าเดาว่าเป็นอะไรและมั่นใจแค่ไหน"
                         ),
                     },
                 ],
@@ -66,16 +75,19 @@ def identify_car(image_data: bytes, media_type: str) -> str:
     return response.content[0].text
 
 
-tab1, tab2 = st.tabs(["📁 Upload Image", "📷 Take Photo"])
+st.markdown("---")
+
+tab1, tab2 = st.tabs(["📁 อัปโหลดรูป", "📷 ถ่ายรูป"])
 
 image_data = None
 media_type = None
 
 with tab1:
     uploaded_file = st.file_uploader(
-        "Choose a car image",
+        "เลือกรูปรถที่ต้องการ",
         type=["jpg", "jpeg", "png", "webp"],
-        help="Upload a clear photo of the car you want to identify.",
+        help="อัปโหลดรูปรถที่ชัดเจน เห็นตัวรถเต็มคัน",
+        label_visibility="collapsed",
     )
     if uploaded_file:
         image_data = uploaded_file.read()
@@ -84,31 +96,27 @@ with tab1:
         media_type = type_map.get(ext, "image/jpeg")
 
 with tab2:
-    camera_photo = st.camera_input("Take a photo of a car")
+    camera_photo = st.camera_input("ถ่ายรูปรถ", label_visibility="collapsed")
     if camera_photo:
         image_data = camera_photo.read()
         media_type = "image/jpeg"
 
 if image_data:
-    col1, col2 = st.columns([1, 1])
+    st.markdown("### รูปรถของคุณ")
+    img = Image.open(BytesIO(image_data))
+    st.image(img, use_container_width=True)
 
-    with col1:
-        st.subheader("Your Car Photo")
-        img = Image.open(BytesIO(image_data))
-        st.image(img, use_container_width=True)
+    st.markdown("### ข้อมูลรถ")
+    with st.spinner("กำลังวิเคราะห์รถ..."):
+        try:
+            result = identify_car(image_data, media_type)
+            st.markdown(result)
+        except anthropic.AuthenticationError:
+            st.error("API Key ไม่ถูกต้อง กรุณาตรวจสอบ ANTHROPIC_API_KEY")
+        except anthropic.APIConnectionError:
+            st.error("ไม่สามารถเชื่อมต่อได้ กรุณาตรวจสอบอินเทอร์เน็ต")
+        except Exception as e:
+            st.error(f"เกิดข้อผิดพลาด: {e}")
 
-    with col2:
-        st.subheader("Car Details")
-        with st.spinner("Identifying car..."):
-            try:
-                result = identify_car(image_data, media_type)
-                st.markdown(result)
-            except anthropic.AuthenticationError:
-                st.error("Invalid API key. Please check your ANTHROPIC_API_KEY.")
-            except anthropic.APIConnectionError:
-                st.error("Connection error. Please check your internet connection.")
-            except Exception as e:
-                st.error(f"An error occurred: {e}")
-
-st.divider()
-st.caption("Powered by Claude AI — Anthropic")
+st.markdown("---")
+st.caption("ขับเคลื่อนโดย Claude AI — Anthropic")
