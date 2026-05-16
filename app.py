@@ -12,388 +12,388 @@ load_dotenv()
 api_key = os.getenv("ANTHROPIC_API_KEY") or st.secrets.get("ANTHROPIC_API_KEY", "")
 
 st.set_page_config(
-    page_title="ดูรถดิ",
+    page_title="ดูรถดิ — Car Identifier",
     page_icon="🏎",
     layout="centered",
 )
 
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Prompt:wght@300;400;500&family=Oswald:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=Prompt:wght@300;400;500&display=swap');
 
-    /* ── Background: single sharp cover image ── */
-    .stApp {
-        background-color: #0d0b08 !important;
-        background-image:
-            linear-gradient(rgba(8,6,3,0.68), rgba(8,6,3,0.68)),
-            url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1920&q=85') !important;
-        background-size: cover !important;
-        background-position: center center !important;
-        background-attachment: fixed !important;
-        background-repeat: no-repeat !important;
-    }
+/* ─── Reset & Base ─── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    [data-testid="stAppViewContainer"],
-    [data-testid="stAppViewBlockContainer"],
-    [data-testid="stVerticalBlock"],
-    [data-testid="stHeader"],
-    [data-testid="stToolbar"],
-    [data-testid="stDecoration"],
-    .main, .main > div, .block-container {
-        background: transparent !important;
-        background-color: transparent !important;
-    }
+html, body { font-family: 'DM Sans', 'Prompt', sans-serif; }
 
-    [data-testid="stHeader"] { display: none; }
-    #MainMenu, footer { visibility: hidden; }
+/* ─── Background ─── */
+.stApp {
+    background-color: #080808 !important;
+    background-image:
+        linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.72) 100%),
+        url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1920&q=90') !important;
+    background-size: cover !important;
+    background-position: center 30% !important;
+    background-attachment: fixed !important;
+    background-repeat: no-repeat !important;
+}
 
-    html, body, [class*="css"] {
-        font-family: 'Prompt', sans-serif;
-    }
+/* ─── Strip Streamlit default backgrounds ─── */
+[data-testid="stAppViewContainer"],
+[data-testid="stAppViewBlockContainer"],
+[data-testid="stVerticalBlock"],
+[data-testid="stHeader"],
+[data-testid="stToolbar"],
+[data-testid="stDecoration"],
+.main, .main > div, .block-container {
+    background: transparent !important;
+    background-color: transparent !important;
+}
 
-    /* ── Topbar ── */
-    .topbar {
-        padding: 1.4rem 0 1rem;
-        text-align: center;
-        border-bottom: 1px solid #8B6914;
-        position: relative;
-    }
+[data-testid="stHeader"] { display: none !important; }
+#MainMenu, footer { visibility: hidden; }
 
-    .topbar::before {
-        content: '';
-        display: block;
-        width: 60px;
-        height: 2px;
-        background: #C9A84C;
-        margin: 0 auto 0.9rem;
-    }
+/* ─── Nav ─── */
+.nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem 0 1.2rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 0;
+}
 
-    .topbar-badge {
-        display: inline-block;
-        border: 2px solid #C9A84C;
-        padding: 0.15rem 1.2rem;
-        font-family: 'Oswald', sans-serif;
-        font-size: 0.6rem;
-        letter-spacing: 0.4em;
-        color: #C9A84C;
-        text-transform: uppercase;
-        margin-bottom: 0.5rem;
-    }
+.nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: 0.04em;
+}
 
-    .topbar-logo {
-        font-family: 'Playfair Display', serif;
-        font-size: 2.6rem;
-        font-weight: 700;
-        color: #F5F0E4;
-        letter-spacing: 0.06em;
-        line-height: 1;
-        margin: 0;
-    }
+.nav-logo span { color: #C9A84C; font-style: italic; }
 
-    .topbar-logo em {
-        font-style: italic;
-        color: #C9A84C;
-    }
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
 
-    .topbar-tagline {
-        font-family: 'Oswald', sans-serif;
-        font-size: 0.65rem;
-        color: #8B7355;
-        letter-spacing: 0.3em;
-        text-transform: uppercase;
-        margin-top: 0.5rem;
-    }
+.nav-badge {
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+}
 
-    .topbar::after {
-        content: '';
-        display: block;
-        width: 60px;
-        height: 2px;
-        background: #C9A84C;
-        margin: 0.9rem auto 0;
-    }
+.nav-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #C9A84C;
+    animation: pulse 2s infinite;
+}
 
-    /* ── Hero ── */
-    .hero {
-        text-align: center;
-        padding: 2.8rem 0 2rem;
-    }
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
 
-    .hero-number {
-        font-family: 'Playfair Display', serif;
-        font-size: 0.7rem;
-        color: #6B5A3E;
-        letter-spacing: 0.3em;
-        text-transform: uppercase;
-        margin-bottom: 0.8rem;
-    }
+/* ─── Hero ─── */
+.hero {
+    padding: 5rem 0 4rem;
+    text-align: center;
+}
 
-    .hero-title {
-        font-family: 'Playfair Display', serif;
-        font-size: 3rem;
-        font-weight: 400;
-        font-style: italic;
-        color: #F5F0E4;
-        line-height: 1.15;
-        margin: 0 0 0.6rem;
-    }
+.hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: #C9A84C;
+    margin-bottom: 1.5rem;
+}
 
-    .hero-title strong {
-        font-style: normal;
-        font-weight: 700;
-        color: #C9A84C;
-    }
+.hero-eyebrow::before,
+.hero-eyebrow::after {
+    content: '';
+    width: 24px;
+    height: 1px;
+    background: #C9A84C;
+}
 
-    .hero-rule {
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-        justify-content: center;
-        margin: 1rem 0;
-    }
+.hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.8rem, 6vw, 4.5rem);
+    font-weight: 300;
+    font-style: italic;
+    color: #fff;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin-bottom: 1.2rem;
+}
 
-    .hero-rule span {
-        width: 40px;
-        height: 1px;
-        background: #5A4A30;
-    }
+.hero-title strong {
+    font-style: normal;
+    font-weight: 600;
+    color: #fff;
+}
 
-    .hero-rule i {
-        font-family: 'Playfair Display', serif;
-        font-style: italic;
-        font-size: 0.8rem;
-        color: #8B7355;
-        letter-spacing: 0.05em;
-    }
+.hero-sub {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.45);
+    font-weight: 300;
+    letter-spacing: 0.04em;
+    max-width: 340px;
+    margin: 0 auto;
+    line-height: 1.7;
+}
 
-    /* ── Card ── */
-    .card {
-        background: #F5F0E4;
-        border: 1px solid #D4C5A0;
-        padding: 0;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 12px 50px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.3);
-    }
+/* ─── Main Card ─── */
+.main-card {
+    background: #ffffff;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow:
+        0 0 0 1px rgba(255,255,255,0.06),
+        0 24px 80px rgba(0,0,0,0.5),
+        0 8px 24px rgba(0,0,0,0.3);
+    margin-bottom: 1.5rem;
+}
 
-    .card-header {
-        background: #1C1810;
-        padding: 0.65rem 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        border-bottom: 2px solid #C9A84C;
-    }
+.card-top-bar {
+    height: 3px;
+    background: linear-gradient(90deg, #C9A84C, #E8C97A, #C9A84C);
+}
 
-    .card-header-label {
-        font-family: 'Oswald', sans-serif;
-        font-size: 0.62rem;
-        letter-spacing: 0.3em;
-        color: #C9A84C;
-        text-transform: uppercase;
-    }
+.card-inner {
+    padding: 2rem 2rem 0;
+}
 
-    .card-header-dots {
-        display: flex;
-        gap: 5px;
-    }
+.card-section-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: #999;
+    margin-bottom: 1rem;
+}
 
-    .card-header-dots span {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: #3A3020;
-    }
+/* ─── Tabs ─── */
+.stTabs [data-baseweb="tab-list"] {
+    background: #f4f4f4;
+    border-radius: 3px;
+    padding: 3px;
+    gap: 2px;
+    border: none !important;
+}
 
-    .card-header-dots span:last-child {
-        background: #C9A84C;
-    }
+.stTabs [data-baseweb="tab"] {
+    border-radius: 2px;
+    color: #888;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    padding: 0.55rem 1.5rem;
+    transition: all 0.2s;
+}
 
-    .card-body {
-        padding: 1.5rem 1.5rem 0.5rem;
-    }
+.stTabs [aria-selected="true"] {
+    background: #fff !important;
+    color: #111 !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.12) !important;
+}
 
-    /* ── Tabs ── */
-    .stTabs [data-baseweb="tab-list"] {
-        background: #EDE7D5;
-        border: none;
-        border-bottom: 2px solid #D4C5A0;
-        border-radius: 0;
-        padding: 0;
-        gap: 0;
-    }
+/* ─── File uploader ─── */
+[data-testid="stFileUploader"] {
+    background: #fafafa;
+    border: 1.5px dashed #ddd;
+    border-radius: 3px;
+    padding: 0.5rem;
+    transition: border-color 0.2s;
+}
 
-    .stTabs [data-baseweb="tab"] {
-        border-radius: 0;
-        color: #8B7355;
-        font-family: 'Oswald', sans-serif;
-        font-size: 0.78rem;
-        font-weight: 400;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        padding: 0.75rem 1.8rem;
-        border-bottom: 3px solid transparent;
-        margin-bottom: -2px;
-    }
+[data-testid="stFileUploader"]:hover { border-color: #C9A84C; }
 
-    .stTabs [aria-selected="true"] {
-        background: #F5F0E4 !important;
-        color: #1C1810 !important;
-        font-weight: 500 !important;
-        border-bottom: 3px solid #C9A84C !important;
-    }
+[data-testid="stFileUploader"] label,
+[data-testid="stFileUploader"] p,
+[data-testid="stFileUploader"] small {
+    color: #aaa !important;
+    font-size: 0.85rem !important;
+}
 
-    /* ── File uploader ── */
-    [data-testid="stFileUploader"] {
-        background: #EDE7D5;
-        border: 1.5px dashed #C0AE85;
-        border-radius: 0;
-        padding: 0.5rem;
-    }
+/* ─── Camera ─── */
+[data-testid="stCameraInput"] video { border-radius: 2px !important; }
 
-    [data-testid="stFileUploader"]:hover { border-color: #C9A84C; }
+/* ─── Card footer (tip) ─── */
+.card-tip {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem 1.2rem;
+    border-top: 1px solid #f0f0f0;
+    margin-top: 1rem;
+    font-size: 0.78rem;
+    color: #bbb;
+    font-weight: 300;
+    letter-spacing: 0.01em;
+}
 
-    [data-testid="stFileUploader"] label,
-    [data-testid="stFileUploader"] p,
-    [data-testid="stFileUploader"] span {
-        color: #6B5A3E !important;
-    }
+.card-tip-icon {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: #f5f5f5;
+    border: 1px solid #e8e8e8;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.65rem;
+    flex-shrink: 0;
+    color: #C9A84C;
+    font-weight: 700;
+}
 
-    /* ── Camera ── */
-    [data-testid="stCameraInput"] video { border-radius: 0 !important; }
+/* ─── Uploaded image ─── */
+[data-testid="stImage"] img {
+    border-radius: 4px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+}
 
-    /* ── Uploaded image ── */
-    [data-testid="stImage"] img {
-        border-radius: 0;
-        border: 1px solid #D4C5A0;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-    }
+/* ─── Result ─── */
+.result-card {
+    background: #fff;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.5), 0 8px 24px rgba(0,0,0,0.3);
+    margin-top: 1.2rem;
+}
 
-    /* ── Tip ── */
-    .tip {
-        font-family: 'Playfair Display', serif;
-        font-style: italic;
-        font-size: 0.8rem;
-        color: #8B7355;
-        padding: 0.8rem 1.5rem 1rem;
-        border-top: 1px solid #D4C5A0;
-    }
+.result-card-top { height: 3px; background: linear-gradient(90deg, #C9A84C, #E8C97A, #C9A84C); }
 
-    /* ── Result card ── */
-    .result-wrap {
-        background: #F5F0E4;
-        border: 1px solid #D4C5A0;
-        box-shadow: 0 12px 50px rgba(0,0,0,0.6);
-        margin-top: 1.5rem;
-        overflow: hidden;
-    }
+.result-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+}
 
-    .result-header {
-        background: #1C1810;
-        border-bottom: 2px solid #C9A84C;
-        padding: 0.65rem 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-    }
+.result-card-title {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: #999;
+}
 
-    .result-header-label {
-        font-family: 'Oswald', sans-serif;
-        font-size: 0.62rem;
-        letter-spacing: 0.3em;
-        color: #C9A84C;
-        text-transform: uppercase;
-    }
+.result-card-tag {
+    font-size: 0.62rem;
+    font-weight: 500;
+    color: #C9A84C;
+    background: rgba(201,168,76,0.08);
+    border: 1px solid rgba(201,168,76,0.2);
+    padding: 0.2rem 0.6rem;
+    border-radius: 2px;
+    letter-spacing: 0.08em;
+}
 
-    .result-header-stripe {
-        flex: 1;
-        height: 1px;
-        background: linear-gradient(to right, #3A3020, transparent);
-    }
+.result-card-body {
+    padding: 1.5rem;
+}
 
-    .result-body {
-        padding: 1.5rem;
-    }
+.result-card-body p, .result-card-body li {
+    color: #333;
+    line-height: 1.85;
+    font-size: 0.92rem;
+    font-weight: 300;
+}
 
-    .result-body p, .result-body li {
-        color: #2A2010;
-        line-height: 1.9;
-        font-size: 0.95rem;
-    }
+.result-card-body strong {
+    color: #111;
+    font-weight: 600;
+}
 
-    .result-body strong {
-        color: #1C1810;
-        font-weight: 600;
-    }
+.result-card-body h1, .result-card-body h2, .result-card-body h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #111;
+    margin-top: 1.2rem;
+    margin-bottom: 0.4rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid #f0f0f0;
+}
 
-    .result-body h1, .result-body h2, .result-body h3 {
-        font-family: 'Playfair Display', serif;
-        color: #1C1810;
-        border-bottom: 1px solid #D4C5A0;
-        padding-bottom: 0.3rem;
-        margin-top: 1.2rem;
-    }
+/* ─── Spinner ─── */
+.stSpinner > div { border-top-color: #C9A84C !important; }
 
-    /* ── Spinner ── */
-    .stSpinner > div { border-top-color: #C9A84C !important; }
+/* ─── Analyzing state ─── */
+.analyzing {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 1.2rem 1.5rem;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    margin-top: 1.2rem;
+    font-size: 0.82rem;
+    color: #888;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+}
 
-    /* ── Footer ── */
-    .footer {
-        text-align: center;
-        padding: 2.5rem 0 1.5rem;
-    }
+/* ─── Footer ─── */
+.footer {
+    padding: 3rem 0 2rem;
+    text-align: center;
+}
 
-    .footer-rule {
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-        justify-content: center;
-        margin-bottom: 1rem;
-    }
+.footer-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
 
-    .footer-rule span {
-        width: 50px;
-        height: 1px;
-        background: #3A3020;
-    }
+.footer-divider-line { flex: 1; height: 1px; background: rgba(255,255,255,0.06); }
+.footer-divider-mark { font-size: 0.5rem; color: rgba(255,255,255,0.15); letter-spacing: 0.3em; }
 
-    .footer-rule i {
-        color: #C9A84C;
-        font-size: 0.7rem;
-        font-style: normal;
-    }
+.footer-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    font-style: italic;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 0.4rem;
+    letter-spacing: 0.04em;
+}
 
-    .footer-credit {
-        font-family: 'Playfair Display', serif;
-        font-style: italic;
-        color: #C9A84C;
-        font-size: 1rem;
-        letter-spacing: 0.05em;
-        margin-bottom: 0.3rem;
-    }
+.footer-powered {
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.18);
+}
 
-    .footer-powered {
-        font-family: 'Oswald', sans-serif;
-        color: #3A3020;
-        font-size: 0.6rem;
-        letter-spacing: 0.28em;
-        text-transform: uppercase;
-    }
-
-    /* ── Error ── */
-    [data-testid="stAlert"] {
-        background: #FDF0E8 !important;
-        border: 1px solid #C9A84C !important;
-        border-left: 4px solid #8B2020 !important;
-        color: #4A1010 !important;
-        border-radius: 0 !important;
-    }
+/* ─── Error ─── */
+[data-testid="stAlert"] {
+    background: #fff8f8 !important;
+    border: 1px solid #ffd0d0 !important;
+    border-left: 3px solid #e53e3e !important;
+    border-radius: 3px !important;
+    color: #c53030 !important;
+    font-size: 0.85rem !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
 client = anthropic.Anthropic(api_key=api_key)
 
 
-def compress_image(image_data: bytes, max_size: int = 800) -> tuple[bytes, str]:
+def compress_image(image_data: bytes, max_size: int = 900) -> tuple[bytes, str]:
     img = Image.open(BytesIO(image_data))
     img = img.convert("RGB")
     w, h = img.size
@@ -401,7 +401,7 @@ def compress_image(image_data: bytes, max_size: int = 800) -> tuple[bytes, str]:
         ratio = max_size / max(w, h)
         img = img.resize((int(w * ratio), int(h * ratio)), Image.LANCZOS)
     buf = BytesIO()
-    img.save(buf, format="JPEG", quality=75)
+    img.save(buf, format="JPEG", quality=80)
     return buf.getvalue(), "image/jpeg"
 
 
@@ -418,11 +418,7 @@ def identify_car(image_data: bytes, media_type: str) -> str:
                 "content": [
                     {
                         "type": "image",
-                        "source": {
-                            "type": "base64",
-                            "media_type": media_type,
-                            "data": image_b64,
-                        },
+                        "source": {"type": "base64", "media_type": media_type, "data": image_b64},
                     },
                     {
                         "type": "text",
@@ -441,40 +437,35 @@ def identify_car(image_data: bytes, media_type: str) -> str:
             }
         ],
     )
-
     return response.content[0].text
 
 
-# ── Topbar ──
+# ── Nav ──
 st.markdown("""
-<div class="topbar">
-    <div class="topbar-badge">Stuttgart · Est. 1948</div>
-    <div class="topbar-logo">ดูรถ<em>ดิ</em></div>
-    <div class="topbar-tagline">Car Identifier &nbsp;·&nbsp; AI Powered</div>
+<div class="nav">
+    <div class="nav-logo">ดูรถ<span>ดิ</span></div>
+    <div class="nav-right">
+        <span class="nav-badge">AI Car Identifier</span>
+        <div class="nav-dot"></div>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
 # ── Hero ──
 st.markdown("""
 <div class="hero">
-    <div class="hero-number">— No. 001 —</div>
-    <div class="hero-title">ถ่าย<strong>รูปรถ</strong><br>รู้ทุกอย่าง</div>
-    <div class="hero-rule">
-        <span></span>
-        <i>ใช้ AI วิเคราะห์รถจากรูปภาพ</i>
-        <span></span>
-    </div>
+    <div class="hero-eyebrow">Powered by Claude AI</div>
+    <div class="hero-title">ถ่ายรูปรถ<br><strong>รู้ทุกอย่างทันที</strong></div>
+    <div class="hero-sub">วิเคราะห์รถจากรูปภาพด้วย AI — ยี่ห้อ รุ่น เครื่องยนต์ และราคาตลาดในไทย</div>
 </div>
 """, unsafe_allow_html=True)
 
-# ── Input card ──
+# ── Main Card ──
 st.markdown("""
-<div class="card">
-    <div class="card-header">
-        <span class="card-header-label">เลือกวิธีอัปโหลด</span>
-        <div class="card-header-dots"><span></span><span></span><span></span></div>
-    </div>
-    <div class="card-body">
+<div class="main-card">
+    <div class="card-top-bar"></div>
+    <div class="card-inner">
+        <div class="card-section-label">เลือกวิธีอัปโหลด</div>
 """, unsafe_allow_html=True)
 
 image_data = None
@@ -502,7 +493,10 @@ with tab2:
 
 st.markdown("""
     </div>
-    <div class="tip">✦ รูปที่ดีควรเห็นตัวรถชัดเจน มีแสงเพียงพอ และเห็นด้านหน้าหรือด้านข้างของรถ</div>
+    <div class="card-tip">
+        <div class="card-tip-icon">i</div>
+        รูปที่ดีควรเห็นตัวรถชัดเจน มีแสงเพียงพอ และเห็นด้านหน้าหรือด้านข้างของรถ
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -511,16 +505,17 @@ if image_data:
     img = Image.open(BytesIO(image_data))
     st.image(img, use_container_width=True)
 
-    with st.spinner("กำลังวิเคราะห์..."):
+    with st.spinner("กำลังวิเคราะห์รถ..."):
         try:
             result = identify_car(image_data, media_type)
             st.markdown("""
-<div class="result-wrap">
-    <div class="result-header">
-        <span class="result-header-label">ผลการวิเคราะห์</span>
-        <div class="result-header-stripe"></div>
+<div class="result-card">
+    <div class="result-card-top"></div>
+    <div class="result-card-header">
+        <span class="result-card-title">ผลการวิเคราะห์</span>
+        <span class="result-card-tag">AI Analysis</span>
     </div>
-    <div class="result-body">
+    <div class="result-card-body">
 """, unsafe_allow_html=True)
             st.markdown(result)
             st.markdown("</div></div>", unsafe_allow_html=True)
@@ -534,10 +529,12 @@ if image_data:
 # ── Footer ──
 st.markdown("""
 <div class="footer">
-    <div class="footer-rule">
-        <span></span><i>✦</i><span></span>
+    <div class="footer-divider">
+        <div class="footer-divider-line"></div>
+        <div class="footer-divider-mark">✦</div>
+        <div class="footer-divider-line"></div>
     </div>
-    <div class="footer-credit">Suphasan Chanthai</div>
-    <div class="footer-powered">Powered by Claude AI &nbsp;·&nbsp; Anthropic</div>
+    <div class="footer-name">Suphasan Chanthai</div>
+    <div class="footer-powered">Powered by Claude AI · Anthropic</div>
 </div>
 """, unsafe_allow_html=True)
