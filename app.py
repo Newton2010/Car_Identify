@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import os
 from io import BytesIO
 
@@ -419,7 +420,19 @@ html, body { font-family: 'DM Sans', 'Prompt', sans-serif; }
 client = anthropic.Anthropic(api_key=api_key)
 
 
-def compress_image(image_data: bytes, max_size: int = 900) -> tuple[bytes, str]:
+PROMPT = (
+    "ช่วยระบุรถในรูปนี้และให้ข้อมูลเป็นภาษาไทย โดยมีหัวข้อดังนี้:\n\n"
+    "1. **ยี่ห้อและรุ่น**: ชื่อผู้ผลิตและรุ่นรถ\n"
+    "2. **ปีที่ผลิต**: ปีโดยประมาณ\n"
+    "3. **เครื่องยนต์**: สเปคเครื่องยนต์ แรงม้า แรงบิด\n"
+    "4. **ฟีเจอร์เด่น**: ความสามารถและเทคโนโลยีที่น่าสนใจ\n"
+    "5. **ราคา**: ราคาตลาดในไทย (ถ้าทราบ)\n"
+    "6. **ข้อมูลน่ารู้**: เรื่องน่าสนใจเกี่ยวกับรถคันนี้\n\n"
+    "ถ้าไม่สามารถระบุได้แน่ชัด ให้บอกว่าเดาว่าเป็นอะไรและมั่นใจแค่ไหน"
+)
+
+
+def compress_image(image_data: bytes, max_size: int = 768) -> bytes:
     img = Image.open(BytesIO(image_data))
     img = img.convert("RGB")
     w, h = img.size
@@ -427,43 +440,43 @@ def compress_image(image_data: bytes, max_size: int = 900) -> tuple[bytes, str]:
         ratio = max_size / max(w, h)
         img = img.resize((int(w * ratio), int(h * ratio)), Image.LANCZOS)
     buf = BytesIO()
-    img.save(buf, format="JPEG", quality=80)
-    return buf.getvalue(), "image/jpeg"
+    img.save(buf, format="JPEG", quality=72)
+    return buf.getvalue()
 
 
-def identify_car(image_data: bytes, media_type: str) -> str:
-    image_data, media_type = compress_image(image_data)
-    image_b64 = base64.standard_b64encode(image_data).decode("utf-8")
-
+@st.cache_data(show_spinner=False, max_entries=20)
+def identify_car(image_hash: str, image_data: bytes) -> str:
+    compressed = compress_image(image_data)
+    image_b64 = base64.standard_b64encode(compressed).decode("utf-8")
     response = client.messages.create(
         model="claude-haiku-4-5",
         max_tokens=1024,
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "image",
-                        "source": {"type": "base64", "media_type": media_type, "data": image_b64},
-                    },
-                    {
-                        "type": "text",
-                        "text": (
-                            "ช่วยระบุรถในรูปนี้และให้ข้อมูลเป็นภาษาไทย โดยมีหัวข้อดังนี้:\n\n"
-                            "1. **ยี่ห้อและรุ่น**: ชื่อผู้ผลิตและรุ่นรถ\n"
-                            "2. **ปีที่ผลิต**: ปีโดยประมาณ\n"
-                            "3. **เครื่องยนต์**: สเปคเครื่องยนต์ แรงม้า แรงบิด\n"
-                            "4. **ฟีเจอร์เด่น**: ความสามารถและเทคโนโลยีที่น่าสนใจ\n"
-                            "5. **ราคา**: ราคาตลาดในไทย (ถ้าทราบ)\n"
-                            "6. **ข้อมูลน่ารู้**: เรื่องน่าสนใจเกี่ยวกับรถคันนี้\n\n"
-                            "ถ้าไม่สามารถระบุได้แน่ชัด ให้บอกว่าเดาว่าเป็นอะไรและมั่นใจแค่ไหน"
-                        ),
-                    },
-                ],
-            }
-        ],
+        messages=[{
+            "role": "user",
+            "content": [
+                {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": image_b64}},
+                {"type": "text", "text": PROMPT},
+            ],
+        }],
     )
     return response.content[0].text
+
+
+def stream_identify_car(image_data: bytes):
+    compressed = compress_image(image_data)
+    image_b64 = base64.standard_b64encode(compressed).decode("utf-8")
+    with client.messages.stream(
+        model="claude-haiku-4-5",
+        max_tokens=1024,
+        messages=[{
+            "role": "user",
+            "content": [
+                {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": image_b64}},
+                {"type": "text", "text": PROMPT},
+            ],
+        }],
+    ) as stream:
+        yield from stream.text_stream
 
 
 # ── Nav ──
@@ -531,10 +544,9 @@ if image_data:
     img = Image.open(BytesIO(image_data))
     st.image(img, use_container_width=True)
 
-    with st.spinner("กำลังวิเคราะห์รถ..."):
-        try:
-            result = identify_car(image_data, media_type)
-            st.markdown("""
+    try:
+        image_hash = hashlib.md5(image_data).hexdigest()
+        st.markdown("""
 <div class="result-card">
     <div class="result-card-top"></div>
     <div class="result-card-header">
@@ -543,14 +555,20 @@ if image_data:
     </div>
     <div class="result-card-body">
 """, unsafe_allow_html=True)
-            st.markdown(result)
-            st.markdown("</div></div>", unsafe_allow_html=True)
-        except anthropic.AuthenticationError:
-            st.error("API Key ไม่ถูกต้อง กรุณาตรวจสอบ ANTHROPIC_API_KEY")
-        except anthropic.APIConnectionError:
-            st.error("ไม่สามารถเชื่อมต่อได้ กรุณาตรวจสอบอินเทอร์เน็ต")
-        except Exception as e:
-            st.error(f"เกิดข้อผิดพลาด: {e}")
+
+        if image_hash in st.session_state:
+            st.markdown(st.session_state[image_hash])
+        else:
+            result = st.write_stream(stream_identify_car(image_data))
+            st.session_state[image_hash] = result
+
+        st.markdown("</div></div>", unsafe_allow_html=True)
+    except anthropic.AuthenticationError:
+        st.error("API Key ไม่ถูกต้อง กรุณาตรวจสอบ ANTHROPIC_API_KEY")
+    except anthropic.APIConnectionError:
+        st.error("ไม่สามารถเชื่อมต่อได้ กรุณาตรวจสอบอินเทอร์เน็ต")
+    except Exception as e:
+        st.error(f"เกิดข้อผิดพลาด: {e}")
 
 # ── Footer ──
 st.markdown("""
