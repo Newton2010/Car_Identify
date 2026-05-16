@@ -13,23 +13,19 @@ api_key = os.getenv("ANTHROPIC_API_KEY") or st.secrets.get("ANTHROPIC_API_KEY", 
 
 st.set_page_config(
     page_title="ดูรถดิ",
-    page_icon="🚗",
+    page_icon="🏎",
     layout="centered",
 )
 
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@200;300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Prompt:wght@300;400;500&family=Oswald:wght@300;400;500&display=swap');
 
-    html, body, [class*="css"] {
-        font-family: 'Prompt', sans-serif;
-    }
-
-    /* ── Background on .stApp directly ── */
+    /* ── Background ── */
     .stApp {
-        background-color: #0a0a0a !important;
+        background-color: #0d0b08 !important;
         background-image:
-            linear-gradient(rgba(0,0,0,0.62), rgba(0,0,0,0.62)),
+            linear-gradient(rgba(10,8,4,0.68), rgba(10,8,4,0.68)),
             url('https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=600&q=60'),
             url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&q=60'),
             url('https://images.unsplash.com/photo-1555353540-64580b51c258?w=600&q=60'),
@@ -53,16 +49,13 @@ st.markdown("""
         background-attachment: fixed !important;
     }
 
-    /* ── Strip child backgrounds so .stApp bg shows through ── */
     [data-testid="stAppViewContainer"],
     [data-testid="stAppViewBlockContainer"],
     [data-testid="stVerticalBlock"],
     [data-testid="stHeader"],
     [data-testid="stToolbar"],
     [data-testid="stDecoration"],
-    .main,
-    .main > div,
-    .block-container {
+    .main, .main > div, .block-container {
         background: transparent !important;
         background-color: transparent !important;
     }
@@ -70,127 +63,215 @@ st.markdown("""
     [data-testid="stHeader"] { display: none; }
     #MainMenu, footer { visibility: hidden; }
 
-    /* ── Top bar ── */
+    html, body, [class*="css"] {
+        font-family: 'Prompt', sans-serif;
+    }
+
+    /* ── Topbar ── */
     .topbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 1.1rem 0 1.1rem;
-        border-bottom: 1px solid rgba(255,255,255,0.12);
-        margin-bottom: 0;
+        padding: 1.4rem 0 1rem;
+        text-align: center;
+        border-bottom: 1px solid #8B6914;
+        position: relative;
+    }
+
+    .topbar::before {
+        content: '';
+        display: block;
+        width: 60px;
+        height: 2px;
+        background: #C9A84C;
+        margin: 0 auto 0.9rem;
+    }
+
+    .topbar-badge {
+        display: inline-block;
+        border: 2px solid #C9A84C;
+        padding: 0.15rem 1.2rem;
+        font-family: 'Oswald', sans-serif;
+        font-size: 0.6rem;
+        letter-spacing: 0.4em;
+        color: #C9A84C;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
     }
 
     .topbar-logo {
-        font-size: 1.3rem;
-        font-weight: 600;
-        color: #fff;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
+        font-family: 'Playfair Display', serif;
+        font-size: 2.6rem;
+        font-weight: 700;
+        color: #F5F0E4;
+        letter-spacing: 0.06em;
+        line-height: 1;
+        margin: 0;
     }
 
-    .topbar-logo span { color: #D5001C; }
+    .topbar-logo em {
+        font-style: italic;
+        color: #C9A84C;
+    }
 
-    .topbar-tag {
+    .topbar-tagline {
+        font-family: 'Oswald', sans-serif;
         font-size: 0.65rem;
-        color: #888;
-        letter-spacing: 0.22em;
+        color: #8B7355;
+        letter-spacing: 0.3em;
         text-transform: uppercase;
+        margin-top: 0.5rem;
+    }
+
+    .topbar::after {
+        content: '';
+        display: block;
+        width: 60px;
+        height: 2px;
+        background: #C9A84C;
+        margin: 0.9rem auto 0;
     }
 
     /* ── Hero ── */
     .hero {
-        padding: 3.5rem 0 2.5rem;
         text-align: center;
+        padding: 2.8rem 0 2rem;
     }
 
-    .hero-eyebrow {
-        font-size: 0.68rem;
+    .hero-number {
+        font-family: 'Playfair Display', serif;
+        font-size: 0.7rem;
+        color: #6B5A3E;
         letter-spacing: 0.3em;
         text-transform: uppercase;
-        color: #D5001C;
-        font-weight: 500;
-        margin-bottom: 1rem;
+        margin-bottom: 0.8rem;
     }
 
     .hero-title {
-        font-size: 3.6rem;
-        font-weight: 200;
-        color: #fff;
-        letter-spacing: 0.04em;
-        line-height: 1.1;
-        margin: 0 0 0.3rem;
+        font-family: 'Playfair Display', serif;
+        font-size: 3rem;
+        font-weight: 400;
+        font-style: italic;
+        color: #F5F0E4;
+        line-height: 1.15;
+        margin: 0 0 0.6rem;
     }
 
     .hero-title strong {
+        font-style: normal;
         font-weight: 700;
-        color: #fff;
+        color: #C9A84C;
     }
 
-    .hero-sub {
-        color: #aaa;
-        font-size: 0.9rem;
-        font-weight: 300;
+    .hero-rule {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        justify-content: center;
+        margin: 1rem 0;
+    }
+
+    .hero-rule span {
+        width: 40px;
+        height: 1px;
+        background: #5A4A30;
+    }
+
+    .hero-rule i {
+        font-family: 'Playfair Display', serif;
+        font-style: italic;
+        font-size: 0.8rem;
+        color: #8B7355;
         letter-spacing: 0.05em;
-        margin-top: 1rem;
     }
 
     /* ── Card ── */
     .card {
-        background: rgba(255, 255, 255, 0.93);
-        border-top: 3px solid #D5001C;
-        padding: 1.8rem;
+        background: #F5F0E4;
+        border: 1px solid #D4C5A0;
+        padding: 0;
         margin-bottom: 1.5rem;
-        box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+        box-shadow: 0 12px 50px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.3);
     }
 
-    .card-label {
-        font-size: 0.65rem;
-        letter-spacing: 0.25em;
+    .card-header {
+        background: #1C1810;
+        padding: 0.65rem 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 2px solid #C9A84C;
+    }
+
+    .card-header-label {
+        font-family: 'Oswald', sans-serif;
+        font-size: 0.62rem;
+        letter-spacing: 0.3em;
+        color: #C9A84C;
         text-transform: uppercase;
-        color: #999;
-        margin-bottom: 1.2rem;
+    }
+
+    .card-header-dots {
+        display: flex;
+        gap: 5px;
+    }
+
+    .card-header-dots span {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #3A3020;
+    }
+
+    .card-header-dots span:last-child {
+        background: #C9A84C;
+    }
+
+    .card-body {
+        padding: 1.5rem 1.5rem 0.5rem;
     }
 
     /* ── Tabs ── */
     .stTabs [data-baseweb="tab-list"] {
-        background: #f0f0f0;
-        border: 1px solid #ddd;
+        background: #EDE7D5;
+        border: none;
+        border-bottom: 2px solid #D4C5A0;
         border-radius: 0;
-        padding: 3px;
-        gap: 3px;
+        padding: 0;
+        gap: 0;
     }
 
     .stTabs [data-baseweb="tab"] {
         border-radius: 0;
-        color: #555;
-        font-family: 'Prompt', sans-serif;
-        font-size: 0.85rem;
+        color: #8B7355;
+        font-family: 'Oswald', sans-serif;
+        font-size: 0.78rem;
         font-weight: 400;
-        letter-spacing: 0.1em;
-        padding: 0.6rem 1.8rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        padding: 0.75rem 1.8rem;
+        border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
     }
 
     .stTabs [aria-selected="true"] {
-        background: #D5001C !important;
-        color: #fff !important;
+        background: #F5F0E4 !important;
+        color: #1C1810 !important;
         font-weight: 500 !important;
+        border-bottom: 3px solid #C9A84C !important;
     }
 
     /* ── File uploader ── */
     [data-testid="stFileUploader"] {
-        background: #fafafa;
-        border: 1.5px dashed #ccc;
+        background: #EDE7D5;
+        border: 1.5px dashed #C0AE85;
         border-radius: 0;
         padding: 0.5rem;
-        transition: border-color 0.2s;
     }
 
-    [data-testid="stFileUploader"]:hover { border-color: #D5001C; }
+    [data-testid="stFileUploader"]:hover { border-color: #C9A84C; }
 
     [data-testid="stFileUploader"] label,
     [data-testid="stFileUploader"] p,
     [data-testid="stFileUploader"] span {
-        color: #666 !important;
+        color: #6B5A3E !important;
     }
 
     /* ── Camera ── */
@@ -199,51 +280,77 @@ st.markdown("""
     /* ── Uploaded image ── */
     [data-testid="stImage"] img {
         border-radius: 0;
-        border: 1px solid #ddd;
-    }
-
-    /* ── Result ── */
-    .result-wrap {
-        background: rgba(255, 255, 255, 0.93);
-        border-top: 3px solid #D5001C;
-        padding: 2rem;
-        margin-top: 1.5rem;
-        box-shadow: 0 8px 40px rgba(0,0,0,0.5);
-    }
-
-    .result-eyebrow {
-        font-size: 0.65rem;
-        letter-spacing: 0.25em;
-        text-transform: uppercase;
-        color: #D5001C;
-        margin-bottom: 1.2rem;
-    }
-
-    .result-wrap p, .result-wrap li {
-        color: #333;
-        line-height: 1.9;
-        font-weight: 400;
-    }
-
-    .result-wrap strong { color: #111; font-weight: 600; }
-
-    .result-wrap h1, .result-wrap h2, .result-wrap h3 {
-        color: #111;
-        font-weight: 600;
+        border: 1px solid #D4C5A0;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.5);
     }
 
     /* ── Tip ── */
     .tip {
-        font-size: 0.78rem;
-        color: #888;
-        margin-top: 1rem;
-        padding-top: 1rem;
-        border-top: 1px solid #e5e5e5;
-        letter-spacing: 0.02em;
+        font-family: 'Playfair Display', serif;
+        font-style: italic;
+        font-size: 0.8rem;
+        color: #8B7355;
+        padding: 0.8rem 1.5rem 1rem;
+        border-top: 1px solid #D4C5A0;
+    }
+
+    /* ── Result card ── */
+    .result-wrap {
+        background: #F5F0E4;
+        border: 1px solid #D4C5A0;
+        box-shadow: 0 12px 50px rgba(0,0,0,0.6);
+        margin-top: 1.5rem;
+        overflow: hidden;
+    }
+
+    .result-header {
+        background: #1C1810;
+        border-bottom: 2px solid #C9A84C;
+        padding: 0.65rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    .result-header-label {
+        font-family: 'Oswald', sans-serif;
+        font-size: 0.62rem;
+        letter-spacing: 0.3em;
+        color: #C9A84C;
+        text-transform: uppercase;
+    }
+
+    .result-header-stripe {
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(to right, #3A3020, transparent);
+    }
+
+    .result-body {
+        padding: 1.5rem;
+    }
+
+    .result-body p, .result-body li {
+        color: #2A2010;
+        line-height: 1.9;
+        font-size: 0.95rem;
+    }
+
+    .result-body strong {
+        color: #1C1810;
+        font-weight: 600;
+    }
+
+    .result-body h1, .result-body h2, .result-body h3 {
+        font-family: 'Playfair Display', serif;
+        color: #1C1810;
+        border-bottom: 1px solid #D4C5A0;
+        padding-bottom: 0.3rem;
+        margin-top: 1.2rem;
     }
 
     /* ── Spinner ── */
-    .stSpinner > div { border-top-color: #D5001C !important; }
+    .stSpinner > div { border-top-color: #C9A84C !important; }
 
     /* ── Footer ── */
     .footer {
@@ -251,30 +358,52 @@ st.markdown("""
         padding: 2.5rem 0 1.5rem;
     }
 
+    .footer-rule {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+
+    .footer-rule span {
+        width: 50px;
+        height: 1px;
+        background: #3A3020;
+    }
+
+    .footer-rule i {
+        color: #C9A84C;
+        font-size: 0.7rem;
+        font-style: normal;
+    }
+
     .footer-credit {
-        color: #eee;
-        font-size: 0.85rem;
-        font-weight: 500;
-        letter-spacing: 0.12em;
-        margin-bottom: 0.4rem;
+        font-family: 'Playfair Display', serif;
+        font-style: italic;
+        color: #C9A84C;
+        font-size: 1rem;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.3rem;
     }
 
     .footer-powered {
-        color: #777;
-        font-size: 0.65rem;
-        letter-spacing: 0.2em;
+        font-family: 'Oswald', sans-serif;
+        color: #3A3020;
+        font-size: 0.6rem;
+        letter-spacing: 0.28em;
         text-transform: uppercase;
     }
 
     /* ── Error ── */
     [data-testid="stAlert"] {
-        background: rgba(213, 0, 28, 0.1) !important;
-        border: 1px solid rgba(213, 0, 28, 0.3) !important;
-        color: #ff6b6b !important;
+        background: #FDF0E8 !important;
+        border: 1px solid #C9A84C !important;
+        border-left: 4px solid #8B2020 !important;
+        color: #4A1010 !important;
         border-radius: 0 !important;
     }
 </style>
-
 """, unsafe_allow_html=True)
 
 client = anthropic.Anthropic(api_key=api_key)
@@ -332,25 +461,37 @@ def identify_car(image_data: bytes, media_type: str) -> str:
     return response.content[0].text
 
 
-# Top bar
+# ── Topbar ──
 st.markdown("""
 <div class="topbar">
-    <div class="topbar-logo">ดูรถ<span>ดิ</span></div>
-    <div class="topbar-tag">Car Identifier · AI Powered</div>
+    <div class="topbar-badge">Stuttgart · Est. 1948</div>
+    <div class="topbar-logo">ดูรถ<em>ดิ</em></div>
+    <div class="topbar-tagline">Car Identifier &nbsp;·&nbsp; AI Powered</div>
 </div>
 """, unsafe_allow_html=True)
 
-# Hero
+# ── Hero ──
 st.markdown("""
 <div class="hero">
-    <div class="hero-eyebrow">Identify Any Car Instantly</div>
+    <div class="hero-number">— No. 001 —</div>
     <div class="hero-title">ถ่าย<strong>รูปรถ</strong><br>รู้ทุกอย่าง</div>
-    <div class="hero-sub">ใช้ AI วิเคราะห์รถจากรูปภาพ — ยี่ห้อ รุ่น เครื่องยนต์ และราคา</div>
+    <div class="hero-rule">
+        <span></span>
+        <i>ใช้ AI วิเคราะห์รถจากรูปภาพ</i>
+        <span></span>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
-# Input card
-st.markdown('<div class="card"><div class="card-label">เลือกวิธีอัปโหลด</div>', unsafe_allow_html=True)
+# ── Input card ──
+st.markdown("""
+<div class="card">
+    <div class="card-header">
+        <span class="card-header-label">เลือกวิธีอัปโหลด</span>
+        <div class="card-header-dots"><span></span><span></span><span></span></div>
+    </div>
+    <div class="card-body">
+""", unsafe_allow_html=True)
 
 image_data = None
 media_type = None
@@ -375,10 +516,13 @@ with tab2:
         type_map = {"jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png", "webp": "image/webp"}
         media_type = type_map.get(ext, "image/jpeg")
 
-st.markdown('<div class="tip">💡 รูปที่ดีควรเห็นตัวรถชัดเจน มีแสงเพียงพอ และเห็นด้านหน้าหรือด้านข้างของรถ</div>', unsafe_allow_html=True)
-st.markdown('</div>', unsafe_allow_html=True)
+st.markdown("""
+    </div>
+    <div class="tip">✦ รูปที่ดีควรเห็นตัวรถชัดเจน มีแสงเพียงพอ และเห็นด้านหน้าหรือด้านข้างของรถ</div>
+</div>
+""", unsafe_allow_html=True)
 
-# Result
+# ── Result ──
 if image_data:
     img = Image.open(BytesIO(image_data))
     st.image(img, use_container_width=True)
@@ -386,10 +530,16 @@ if image_data:
     with st.spinner("กำลังวิเคราะห์..."):
         try:
             result = identify_car(image_data, media_type)
-            st.markdown('<div class="result-wrap">', unsafe_allow_html=True)
-            st.markdown('<div class="result-eyebrow">ผลการวิเคราะห์</div>', unsafe_allow_html=True)
+            st.markdown("""
+<div class="result-wrap">
+    <div class="result-header">
+        <span class="result-header-label">ผลการวิเคราะห์</span>
+        <div class="result-header-stripe"></div>
+    </div>
+    <div class="result-body">
+""", unsafe_allow_html=True)
             st.markdown(result)
-            st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown("</div></div>", unsafe_allow_html=True)
         except anthropic.AuthenticationError:
             st.error("API Key ไม่ถูกต้อง กรุณาตรวจสอบ ANTHROPIC_API_KEY")
         except anthropic.APIConnectionError:
@@ -397,9 +547,13 @@ if image_data:
         except Exception as e:
             st.error(f"เกิดข้อผิดพลาด: {e}")
 
+# ── Footer ──
 st.markdown("""
 <div class="footer">
-    <div class="footer-credit">Created by Suphasan Chanthai</div>
+    <div class="footer-rule">
+        <span></span><i>✦</i><span></span>
+    </div>
+    <div class="footer-credit">Suphasan Chanthai</div>
     <div class="footer-powered">Powered by Claude AI &nbsp;·&nbsp; Anthropic</div>
 </div>
 """, unsafe_allow_html=True)
