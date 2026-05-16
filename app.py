@@ -19,111 +19,142 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@200;300;400;500;600;700&display=swap');
 
     html, body, [class*="css"] {
         font-family: 'Prompt', sans-serif;
     }
 
-    .stApp {
-        background-color: #f5f5f0;
+    /* ── Background mosaic ── */
+    .bg-mosaic {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap: 3px;
+        pointer-events: none;
     }
 
-    /* Top bar */
+    .bg-mosaic img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: brightness(0.18) saturate(0.6);
+    }
+
+    .bg-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        background: radial-gradient(ellipse at center, rgba(10,10,10,0.55) 0%, rgba(10,10,10,0.88) 100%);
+        pointer-events: none;
+    }
+
+    /* ── App shell ── */
+    .stApp {
+        background: transparent;
+    }
+
+    [data-testid="stAppViewContainer"] > .main {
+        position: relative;
+        z-index: 2;
+    }
+
+    [data-testid="stHeader"] { display: none; }
+    #MainMenu, footer { visibility: hidden; }
+
+    /* ── Top bar ── */
     .topbar {
-        background: #fff;
-        border-bottom: 3px solid #D5001C;
-        padding: 1.2rem 2rem;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin: -1rem -1rem 0 -1rem;
+        padding: 1.1rem 0 1.1rem;
+        border-bottom: 1px solid #2a2a2a;
+        margin-bottom: 0;
     }
 
     .topbar-logo {
-        font-size: 1.4rem;
+        font-size: 1.3rem;
         font-weight: 600;
-        color: #1a1a1a;
-        letter-spacing: 0.15em;
+        color: #fff;
+        letter-spacing: 0.18em;
         text-transform: uppercase;
     }
 
-    .topbar-logo span {
-        color: #D5001C;
-    }
+    .topbar-logo span { color: #D5001C; }
 
     .topbar-tag {
-        font-size: 0.7rem;
-        color: #999;
-        letter-spacing: 0.2em;
+        font-size: 0.65rem;
+        color: #555;
+        letter-spacing: 0.22em;
         text-transform: uppercase;
-        font-weight: 500;
     }
 
-    /* Hero */
+    /* ── Hero ── */
     .hero {
-        background: #fff;
-        padding: 3rem 2rem 2.5rem;
+        padding: 3.5rem 0 2.5rem;
         text-align: center;
-        margin-bottom: 0;
-        border-bottom: 1px solid #e8e8e8;
     }
 
     .hero-eyebrow {
-        font-size: 0.72rem;
-        letter-spacing: 0.25em;
+        font-size: 0.68rem;
+        letter-spacing: 0.3em;
         text-transform: uppercase;
         color: #D5001C;
         font-weight: 500;
-        margin-bottom: 0.75rem;
+        margin-bottom: 1rem;
     }
 
     .hero-title {
-        font-size: 3.2rem;
-        font-weight: 300;
-        color: #1a1a1a;
-        letter-spacing: 0.05em;
+        font-size: 3.6rem;
+        font-weight: 200;
+        color: #fff;
+        letter-spacing: 0.04em;
         line-height: 1.1;
-        margin: 0;
+        margin: 0 0 0.3rem;
     }
 
     .hero-title strong {
-        font-weight: 600;
+        font-weight: 700;
+        color: #fff;
     }
 
     .hero-sub {
         color: #666;
-        font-size: 0.95rem;
-        margin-top: 1rem;
+        font-size: 0.9rem;
         font-weight: 300;
-        letter-spacing: 0.02em;
+        letter-spacing: 0.05em;
+        margin-top: 1rem;
     }
 
-    /* Section */
-    .section {
-        background: #fff;
-        border-radius: 0;
-        padding: 2rem;
-        margin-top: 1.5rem;
-        border: 1px solid #e8e8e8;
+    /* ── Card ── */
+    .card {
+        background: rgba(18, 18, 18, 0.85);
+        border: 1px solid #2a2a2a;
+        border-top: 3px solid #D5001C;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        padding: 1.8rem;
+        margin-bottom: 1.5rem;
     }
 
-    .section-label {
-        font-size: 0.68rem;
-        letter-spacing: 0.2em;
+    .card-label {
+        font-size: 0.65rem;
+        letter-spacing: 0.25em;
         text-transform: uppercase;
-        color: #999;
-        font-weight: 500;
+        color: #555;
         margin-bottom: 1.2rem;
     }
 
-    /* Tabs */
+    /* ── Tabs ── */
     .stTabs [data-baseweb="tab-list"] {
-        background: #f5f5f0;
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
         border-radius: 0;
         padding: 3px;
         gap: 3px;
-        border: 1px solid #e0e0e0;
     }
 
     .stTabs [data-baseweb="tab"] {
@@ -132,8 +163,8 @@ st.markdown("""
         font-family: 'Prompt', sans-serif;
         font-size: 0.85rem;
         font-weight: 400;
-        letter-spacing: 0.08em;
-        padding: 0.6rem 1.5rem;
+        letter-spacing: 0.1em;
+        padding: 0.6rem 1.8rem;
     }
 
     .stTabs [aria-selected="true"] {
@@ -142,100 +173,109 @@ st.markdown("""
         font-weight: 500 !important;
     }
 
-    /* File uploader */
+    /* ── File uploader ── */
     [data-testid="stFileUploader"] {
-        background: #fafafa;
-        border: 1.5px dashed #d0d0d0;
+        background: #111;
+        border: 1.5px dashed #2a2a2a;
         border-radius: 0;
         padding: 0.5rem;
         transition: border-color 0.2s;
     }
 
-    [data-testid="stFileUploader"]:hover {
-        border-color: #D5001C;
+    [data-testid="stFileUploader"]:hover { border-color: #D5001C; }
+
+    [data-testid="stFileUploader"] label,
+    [data-testid="stFileUploader"] p,
+    [data-testid="stFileUploader"] span {
+        color: #888 !important;
     }
 
-    /* Camera */
-    [data-testid="stCameraInput"] video {
-        border-radius: 0 !important;
-    }
+    /* ── Camera ── */
+    [data-testid="stCameraInput"] video { border-radius: 0 !important; }
 
-    /* Image */
+    /* ── Uploaded image ── */
     [data-testid="stImage"] img {
         border-radius: 0;
-        border: 1px solid #e0e0e0;
+        border: 1px solid #2a2a2a;
     }
 
-    /* Result */
+    /* ── Result ── */
     .result-wrap {
-        background: #fff;
+        background: rgba(18, 18, 18, 0.9);
+        border: 1px solid #2a2a2a;
         border-top: 3px solid #D5001C;
-        border-left: 1px solid #e8e8e8;
-        border-right: 1px solid #e8e8e8;
-        border-bottom: 1px solid #e8e8e8;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
         padding: 2rem;
         margin-top: 1.5rem;
     }
 
     .result-eyebrow {
-        font-size: 0.68rem;
-        letter-spacing: 0.2em;
+        font-size: 0.65rem;
+        letter-spacing: 0.25em;
         text-transform: uppercase;
         color: #D5001C;
-        font-weight: 500;
         margin-bottom: 1.2rem;
     }
 
     .result-wrap p, .result-wrap li {
-        color: #333;
+        color: #ccc;
         line-height: 1.9;
         font-weight: 300;
     }
 
-    .result-wrap strong {
-        color: #1a1a1a;
-        font-weight: 600;
-    }
+    .result-wrap strong { color: #fff; font-weight: 600; }
 
     .result-wrap h1, .result-wrap h2, .result-wrap h3 {
-        color: #1a1a1a;
+        color: #fff;
         font-weight: 500;
     }
 
-    /* Tip */
+    /* ── Tip ── */
     .tip {
-        font-size: 0.8rem;
-        color: #999;
+        font-size: 0.78rem;
+        color: #444;
         margin-top: 1rem;
         padding-top: 1rem;
-        border-top: 1px solid #eee;
+        border-top: 1px solid #1e1e1e;
         letter-spacing: 0.02em;
     }
 
-    /* Divider line */
-    .rule {
-        border: none;
-        border-top: 1px solid #e0e0e0;
-        margin: 2rem 0;
-    }
+    /* ── Spinner ── */
+    .stSpinner > div { border-top-color: #D5001C !important; }
 
-    /* Footer */
+    /* ── Footer ── */
     .footer {
         text-align: center;
-        color: #bbb;
-        font-size: 0.72rem;
-        letter-spacing: 0.15em;
+        color: #333;
+        font-size: 0.68rem;
+        letter-spacing: 0.2em;
         text-transform: uppercase;
         padding: 2.5rem 0 1.5rem;
     }
 
-    /* Spinner */
-    .stSpinner > div {
-        border-top-color: #D5001C !important;
+    /* ── Error ── */
+    [data-testid="stAlert"] {
+        background: rgba(213, 0, 28, 0.1) !important;
+        border: 1px solid rgba(213, 0, 28, 0.3) !important;
+        color: #ff6b6b !important;
+        border-radius: 0 !important;
     }
-
-    #MainMenu, footer, header {visibility: hidden;}
 </style>
+
+<!-- Background mosaic of cars -->
+<div class="bg-mosaic">
+    <img src="https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=600&q=60" />
+    <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&q=60" />
+    <img src="https://images.unsplash.com/photo-1555353540-64580b51c258?w=600&q=60" />
+    <img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=600&q=60" />
+    <img src="https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=600&q=60" />
+    <img src="https://images.unsplash.com/photo-1542362567-b07e54358753?w=600&q=60" />
+    <img src="https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=600&q=60" />
+    <img src="https://images.unsplash.com/photo-1471479917193-f00955256257?w=600&q=60" />
+    <img src="https://images.unsplash.com/photo-1580274455191-1c62238fa333?w=600&q=60" />
+</div>
+<div class="bg-overlay"></div>
 """, unsafe_allow_html=True)
 
 client = anthropic.Anthropic(api_key=api_key)
@@ -310,8 +350,8 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Input section
-st.markdown('<div class="section"><div class="section-label">เลือกวิธีอัปโหลด</div>', unsafe_allow_html=True)
+# Input card
+st.markdown('<div class="card"><div class="card-label">เลือกวิธีอัปโหลด</div>', unsafe_allow_html=True)
 
 image_data = None
 media_type = None
