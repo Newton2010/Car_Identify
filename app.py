@@ -25,18 +25,11 @@ st.markdown("""
         font-family: 'Prompt', sans-serif;
     }
 
-    /* ── Background: car mosaic via body pseudo-element ── */
-    body {
-        position: relative;
+    /* ── Background on .stApp directly ── */
+    .stApp {
         background-color: #0a0a0a !important;
-    }
-
-    body::before {
-        content: '';
-        position: fixed;
-        inset: 0;
-        z-index: -9999;
         background-image:
+            linear-gradient(rgba(0,0,0,0.62), rgba(0,0,0,0.62)),
             url('https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=600&q=60'),
             url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&q=60'),
             url('https://images.unsplash.com/photo-1555353540-64580b51c258?w=600&q=60'),
@@ -45,27 +38,22 @@ st.markdown("""
             url('https://images.unsplash.com/photo-1542362567-b07e54358753?w=600&q=60'),
             url('https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=600&q=60'),
             url('https://images.unsplash.com/photo-1471479917193-f00955256257?w=600&q=60'),
-            url('https://images.unsplash.com/photo-1580274455191-1c62238fa333?w=600&q=60');
-        background-size: 33.34% 33.34%;
+            url('https://images.unsplash.com/photo-1580274455191-1c62238fa333?w=600&q=60') !important;
+        background-size:
+            cover,
+            33.34% 33.34%, 33.34% 33.34%, 33.34% 33.34%,
+            33.34% 33.34%, 33.34% 33.34%, 33.34% 33.34%,
+            33.34% 33.34%, 33.34% 33.34%, 33.34% 33.34% !important;
         background-position:
+            center,
             0% 0%,   50% 0%,   100% 0%,
             0% 50%,  50% 50%,  100% 50%,
-            0% 100%, 50% 100%, 100% 100%;
-        background-repeat: no-repeat;
-        filter: brightness(0.32) saturate(0.65);
+            0% 100%, 50% 100%, 100% 100% !important;
+        background-repeat: no-repeat !important;
+        background-attachment: fixed !important;
     }
 
-    body::after {
-        content: '';
-        position: fixed;
-        inset: 0;
-        z-index: -9998;
-        background: rgba(0, 0, 0, 0.55);
-        pointer-events: none;
-    }
-
-    /* ── Strip ALL Streamlit backgrounds ── */
-    .stApp,
+    /* ── Strip child backgrounds so .stApp bg shows through ── */
     [data-testid="stAppViewContainer"],
     [data-testid="stAppViewBlockContainer"],
     [data-testid="stVerticalBlock"],
@@ -74,8 +62,7 @@ st.markdown("""
     [data-testid="stDecoration"],
     .main,
     .main > div,
-    .block-container,
-    .element-container {
+    .block-container {
         background: transparent !important;
         background-color: transparent !important;
     }
