@@ -413,6 +413,14 @@ html, body { font-family: 'DM Sans', 'Prompt', sans-serif; }
 
 .sec-body strong { color: #fff; font-weight: 600; }
 
+.sec-fallback {
+    color: #e8e8e8;
+    font-size: 0.9rem;
+    line-height: 1.75;
+    font-weight: 300;
+    padding: 0.5rem 0;
+}
+
 /* ─── Spinner ─── */
 .stSpinner > div { border-top-color: #C9A84C !important; }
 
@@ -525,34 +533,74 @@ def identify_car(image_hash: str, image_data: bytes) -> str:
 SECTION_ICONS = ["🏎", "📅", "⚙️", "⚡", "💰", "💡"]
 
 
-def render_result(text: str):
-    sections = re.split(r'(?=\n\d+\.|\A\d+\.)', text.strip())
-    parsed = []
-    for sec in sections:
-        sec = sec.strip()
-        if not sec:
-            continue
-        m = re.match(r'\d+\.\s+\*\*([^*\n]+?)\*\*[:\s]*(.*)', sec, re.DOTALL)
-        if m:
-            parsed.append({"title": m.group(1).strip().rstrip(':'), "body": m.group(2).strip()})
+def build_result_html(text: str) -> str:
+    # Format: "## 1. **Title**\ncontent" or "1. **Title**: content"
+    lines = text.strip().splitlines()
+    sections = []
+    cur_title, cur_body = "", []
 
-    if not parsed:
-        st.markdown(text)
-        return
+    for line in lines:
+        # Match: optional ##, digit, dot, optional **, title, optional **
+        m = re.match(r'^#{0,3}\s*\d+\.\s+\*{0,2}([^*\n]+?)\*{0,2}\s*$', line.strip())
+        # Also match inline: "1. **Title**: body text"
+        m2 = re.match(r'^#{0,3}\s*\d+\.\s+\*{1,2}([^*\n]+?)\*{1,2}[:\s]+(.*)', line.strip())
+        if m2:
+            if cur_title or cur_body:
+                sections.append((cur_title, cur_body[:]))
+            cur_title = m2.group(1).strip().rstrip(':')
+            cur_body = [m2.group(2).strip()] if m2.group(2).strip() else []
+        elif m:
+            if cur_title or cur_body:
+                sections.append((cur_title, cur_body[:]))
+            cur_title = m.group(1).strip().rstrip(':')
+            cur_body = []
+        elif line.strip() and not line.strip().startswith('#'):
+            cur_body.append(line.strip())
 
-    for i, item in enumerate(parsed):
+    if cur_title or cur_body:
+        sections.append((cur_title, cur_body[:]))
+
+    if not sections:
+        # Fallback: plain text
+        body = re.sub(r'\*\*(.+?)\*\*', r'<strong style="color:#fff">\1</strong>', text.replace('\n', '<br>'))
+        return f'''
+<div style="background:#111;border-radius:4px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,0.5);margin-top:1.2rem;">
+  <div style="height:3px;background:linear-gradient(90deg,#C9A84C,#E8C97A,#C9A84C);"></div>
+  <div style="padding:1.5rem;color:#e8e8e8;font-size:0.9rem;line-height:1.75;">{body}</div>
+</div>'''
+
+    def lines_to_html(body_lines):
+        parts = []
+        for ln in body_lines:
+            ln = re.sub(r'\*\*(.+?)\*\*', r'<strong style="color:#fff;font-weight:600">\1</strong>', ln)
+            if ln.startswith("- ") or ln.startswith("• "):
+                parts.append(f'<div style="display:flex;gap:0.4rem;margin:0.15rem 0;"><span style="color:#C9A84C;flex-shrink:0;">–</span><span>{ln[2:]}</span></div>')
+            else:
+                parts.append(f'<div style="margin:0.2rem 0;">{ln}</div>')
+        return "".join(parts)
+
+    cards = ""
+    for i, (title, body_lines) in enumerate(sections):
         icon = SECTION_ICONS[i] if i < len(SECTION_ICONS) else "•"
-        delay = i * 0.13
-        body_html = item["body"].replace("\n", "<br>")
-        body_html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', body_html)
-        st.markdown(f"""
-<div class="sec-card" style="animation-delay:{delay}s">
-    <div class="sec-icon-wrap">{icon}</div>
-    <div class="sec-content">
-        <div class="sec-title">{item["title"]}</div>
-        <div class="sec-body">{body_html}</div>
-    </div>
-</div>""", unsafe_allow_html=True)
+        body_html = lines_to_html(body_lines)
+        cards += f'''
+<div style="display:flex;gap:1rem;padding:1rem 0;border-bottom:1px solid rgba(255,255,255,0.07);animation:slideUp 0.5s cubic-bezier(0.22,1,0.36,1) {i*0.13:.2f}s both;">
+  <div style="flex-shrink:0;width:2.4rem;height:2.4rem;border-radius:50%;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.3);display:flex;align-items:center;justify-content:center;font-size:1rem;">{icon}</div>
+  <div style="flex:1;min-width:0;">
+    <div style="font-size:0.58rem;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:#C9A84C;margin-bottom:0.35rem;">{title}</div>
+    <div style="color:#e8e8e8;font-size:0.88rem;line-height:1.75;font-weight:300;">{body_html}</div>
+  </div>
+</div>'''
+
+    return f'''
+<div style="background:#111;border-radius:4px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,0.5);margin-top:1.2rem;">
+  <div style="height:3px;background:linear-gradient(90deg,#C9A84C,#E8C97A,#C9A84C);"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:0.9rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.08);">
+    <span style="font-size:0.6rem;font-weight:600;letter-spacing:0.28em;text-transform:uppercase;color:#888;">ผลการวิเคราะห์</span>
+    <span style="font-size:0.62rem;color:#C9A84C;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);padding:0.2rem 0.6rem;border-radius:2px;">AI Analysis</span>
+  </div>
+  <div style="padding:0.5rem 1.5rem 1.5rem;">{cards}</div>
+</div>'''
 
 
 def stream_identify_car(image_data: bytes):
@@ -646,17 +694,7 @@ if image_data:
 
         result = st.session_state[image_hash]
 
-        st.markdown("""
-<div class="result-card">
-    <div class="result-card-top"></div>
-    <div class="result-card-header">
-        <span class="result-card-title">ผลการวิเคราะห์</span>
-        <span class="result-card-tag">AI Analysis</span>
-    </div>
-    <div class="result-card-body">
-""", unsafe_allow_html=True)
-        render_result(result)
-        st.markdown("</div></div>", unsafe_allow_html=True)
+        st.markdown(build_result_html(result), unsafe_allow_html=True)
 
     except anthropic.AuthenticationError:
         st.error("API Key ไม่ถูกต้อง กรุณาตรวจสอบ ANTHROPIC_API_KEY")
