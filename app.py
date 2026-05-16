@@ -21,32 +21,16 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Prompt:wght@300;400;500&family=Oswald:wght@300;400;500&display=swap');
 
-    /* ── Background ── */
+    /* ── Background: single sharp cover image ── */
     .stApp {
         background-color: #0d0b08 !important;
         background-image:
-            linear-gradient(rgba(10,8,4,0.68), rgba(10,8,4,0.68)),
-            url('https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=600&q=60'),
-            url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&q=60'),
-            url('https://images.unsplash.com/photo-1555353540-64580b51c258?w=600&q=60'),
-            url('https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=600&q=60'),
-            url('https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=600&q=60'),
-            url('https://images.unsplash.com/photo-1542362567-b07e54358753?w=600&q=60'),
-            url('https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=600&q=60'),
-            url('https://images.unsplash.com/photo-1471479917193-f00955256257?w=600&q=60'),
-            url('https://images.unsplash.com/photo-1580274455191-1c62238fa333?w=600&q=60') !important;
-        background-size:
-            cover,
-            33.34% 33.34%, 33.34% 33.34%, 33.34% 33.34%,
-            33.34% 33.34%, 33.34% 33.34%, 33.34% 33.34%,
-            33.34% 33.34%, 33.34% 33.34%, 33.34% 33.34% !important;
-        background-position:
-            center,
-            0% 0%,   50% 0%,   100% 0%,
-            0% 50%,  50% 50%,  100% 50%,
-            0% 100%, 50% 100%, 100% 100% !important;
-        background-repeat: no-repeat !important;
+            linear-gradient(rgba(8,6,3,0.68), rgba(8,6,3,0.68)),
+            url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1920&q=85') !important;
+        background-size: cover !important;
+        background-position: center center !important;
         background-attachment: fixed !important;
+        background-repeat: no-repeat !important;
     }
 
     [data-testid="stAppViewContainer"],
