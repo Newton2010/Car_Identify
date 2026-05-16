@@ -263,7 +263,7 @@ html, body { font-family: 'DM Sans', 'Prompt', sans-serif; }
 
 /* ─── Result ─── */
 .result-card {
-    background: #fff;
+    background: #111;
     border-radius: 4px;
     overflow: hidden;
     box-shadow: 0 24px 80px rgba(0,0,0,0.5), 0 8px 24px rgba(0,0,0,0.3);
@@ -277,7 +277,7 @@ html, body { font-family: 'DM Sans', 'Prompt', sans-serif; }
     align-items: center;
     justify-content: space-between;
     padding: 1rem 1.5rem;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 
 .result-card-title {
@@ -304,14 +304,14 @@ html, body { font-family: 'DM Sans', 'Prompt', sans-serif; }
 }
 
 .result-card-body p, .result-card-body li {
-    color: #333;
+    color: #fff;
     line-height: 1.85;
     font-size: 0.92rem;
     font-weight: 300;
 }
 
 .result-card-body strong {
-    color: #111;
+    color: #fff;
     font-weight: 600;
 }
 
@@ -319,11 +319,11 @@ html, body { font-family: 'DM Sans', 'Prompt', sans-serif; }
     font-family: 'Cormorant Garamond', serif;
     font-weight: 600;
     font-size: 1.1rem;
-    color: #111;
+    color: #fff;
     margin-top: 1.2rem;
     margin-bottom: 0.4rem;
     padding-bottom: 0.4rem;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
 }
 
 /* ─── Spinner ─── */
