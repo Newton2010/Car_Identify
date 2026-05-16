@@ -71,7 +71,7 @@ st.markdown("""
         align-items: center;
         justify-content: space-between;
         padding: 1.1rem 0 1.1rem;
-        border-bottom: 1px solid #2a2a2a;
+        border-bottom: 1px solid rgba(255,255,255,0.12);
         margin-bottom: 0;
     }
 
@@ -131,11 +131,11 @@ st.markdown("""
 
     /* ── Card ── */
     .card {
-        background: rgba(30, 30, 30, 0.92);
-        border: 1px solid #3a3a3a;
+        background: rgba(255, 255, 255, 0.10);
+        border: 1px solid rgba(255, 255, 255, 0.18);
         border-top: 3px solid #D5001C;
-        backdrop-filter: blur(24px);
-        -webkit-backdrop-filter: blur(24px);
+        backdrop-filter: blur(32px);
+        -webkit-backdrop-filter: blur(32px);
         padding: 1.8rem;
         margin-bottom: 1.5rem;
     }
@@ -144,14 +144,14 @@ st.markdown("""
         font-size: 0.65rem;
         letter-spacing: 0.25em;
         text-transform: uppercase;
-        color: #888;
+        color: #ccc;
         margin-bottom: 1.2rem;
     }
 
     /* ── Tabs ── */
     .stTabs [data-baseweb="tab-list"] {
-        background: #1a1a1a;
-        border: 1px solid #2a2a2a;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.12);
         border-radius: 0;
         padding: 3px;
         gap: 3px;
@@ -159,7 +159,7 @@ st.markdown("""
 
     .stTabs [data-baseweb="tab"] {
         border-radius: 0;
-        color: #666;
+        color: #ddd;
         font-family: 'Prompt', sans-serif;
         font-size: 0.85rem;
         font-weight: 400;
@@ -175,8 +175,8 @@ st.markdown("""
 
     /* ── File uploader ── */
     [data-testid="stFileUploader"] {
-        background: #111;
-        border: 1.5px dashed #2a2a2a;
+        background: rgba(255,255,255,0.05);
+        border: 1.5px dashed rgba(255,255,255,0.25);
         border-radius: 0;
         padding: 0.5rem;
         transition: border-color 0.2s;
@@ -187,7 +187,7 @@ st.markdown("""
     [data-testid="stFileUploader"] label,
     [data-testid="stFileUploader"] p,
     [data-testid="stFileUploader"] span {
-        color: #888 !important;
+        color: #ccc !important;
     }
 
     /* ── Camera ── */
@@ -201,11 +201,11 @@ st.markdown("""
 
     /* ── Result ── */
     .result-wrap {
-        background: rgba(30, 30, 30, 0.92);
-        border: 1px solid #3a3a3a;
+        background: rgba(255, 255, 255, 0.10);
+        border: 1px solid rgba(255, 255, 255, 0.18);
         border-top: 3px solid #D5001C;
-        backdrop-filter: blur(24px);
-        -webkit-backdrop-filter: blur(24px);
+        backdrop-filter: blur(32px);
+        -webkit-backdrop-filter: blur(32px);
         padding: 2rem;
         margin-top: 1.5rem;
     }
@@ -234,10 +234,10 @@ st.markdown("""
     /* ── Tip ── */
     .tip {
         font-size: 0.78rem;
-        color: #777;
+        color: #bbb;
         margin-top: 1rem;
         padding-top: 1rem;
-        border-top: 1px solid #2a2a2a;
+        border-top: 1px solid rgba(255,255,255,0.1);
         letter-spacing: 0.02em;
     }
 
@@ -259,7 +259,7 @@ st.markdown("""
     }
 
     .footer-powered {
-        color: #444;
+        color: #777;
         font-size: 0.65rem;
         letter-spacing: 0.2em;
         text-transform: uppercase;
