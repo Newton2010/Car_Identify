@@ -12,6 +12,9 @@ from PIL import Image
 load_dotenv()
 
 api_key = os.getenv("ANTHROPIC_API_KEY") or st.secrets.get("ANTHROPIC_API_KEY", "")
+if not api_key:
+    st.error("ไม่พบ ANTHROPIC_API_KEY — กรุณาตั้งค่าใน .env หรือ Streamlit Secrets")
+    st.stop()
 
 st.set_page_config(
     page_title="ดูรถดิ — Car Identifier",
@@ -616,22 +619,6 @@ def build_result_html(text: str) -> str:
 </div>'''
 
 
-def stream_identify_car(image_data: bytes):
-    compressed = compress_image(image_data)
-    image_b64 = base64.standard_b64encode(compressed).decode("utf-8")
-    with client.messages.stream(
-        model="claude-haiku-4-5",
-        max_tokens=1024,
-        messages=[{
-            "role": "user",
-            "content": [
-                {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": image_b64}},
-                {"type": "text", "text": PROMPT},
-            ],
-        }],
-    ) as stream:
-        yield from stream.text_stream
-
 
 # ── Nav ──
 st.markdown("""
@@ -662,7 +649,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 image_data = None
-media_type = None
 
 tab1, tab2 = st.tabs(["📷  ถ่ายรูป", "📁  อัปโหลดรูป"])
 
@@ -670,7 +656,6 @@ with tab1:
     camera_photo = st.camera_input("ถ่ายรูปรถ", label_visibility="collapsed")
     if camera_photo:
         image_data = camera_photo.read()
-        media_type = "image/jpeg"
 
 with tab2:
     uploaded_file = st.file_uploader(
@@ -680,9 +665,6 @@ with tab2:
     )
     if uploaded_file:
         image_data = uploaded_file.read()
-        ext = uploaded_file.name.split(".")[-1].lower()
-        type_map = {"jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png", "webp": "image/webp"}
-        media_type = type_map.get(ext, "image/jpeg")
 
 st.markdown("""
     </div>
