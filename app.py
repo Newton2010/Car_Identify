@@ -203,6 +203,12 @@ html, body { font-family: 'DM Sans', 'Prompt', sans-serif; }
     transition: all 0.2s;
 }
 
+.stTabs [data-baseweb="tab"] p,
+.stTabs [data-baseweb="tab"] span,
+.stTabs [data-baseweb="tab"] div {
+    color: #111 !important;
+}
+
 .stTabs [aria-selected="true"] {
     background: #fff !important;
     color: #111 !important;
