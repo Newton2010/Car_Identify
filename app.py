@@ -25,47 +25,59 @@ st.markdown("""
         font-family: 'Prompt', sans-serif;
     }
 
-    /* ── Background mosaic ── */
-    .bg-mosaic {
+    /* ── Background: car mosaic via body pseudo-element ── */
+    body {
+        position: relative;
+        background-color: #0a0a0a !important;
+    }
+
+    body::before {
+        content: '';
         position: fixed;
         inset: 0;
-        z-index: 0;
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        grid-template-rows: repeat(3, 1fr);
-        gap: 3px;
+        z-index: -9999;
+        background-image:
+            url('https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=600&q=60'),
+            url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&q=60'),
+            url('https://images.unsplash.com/photo-1555353540-64580b51c258?w=600&q=60'),
+            url('https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=600&q=60'),
+            url('https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=600&q=60'),
+            url('https://images.unsplash.com/photo-1542362567-b07e54358753?w=600&q=60'),
+            url('https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=600&q=60'),
+            url('https://images.unsplash.com/photo-1471479917193-f00955256257?w=600&q=60'),
+            url('https://images.unsplash.com/photo-1580274455191-1c62238fa333?w=600&q=60');
+        background-size: 33.34% 33.34%;
+        background-position:
+            0% 0%,   50% 0%,   100% 0%,
+            0% 50%,  50% 50%,  100% 50%,
+            0% 100%, 50% 100%, 100% 100%;
+        background-repeat: no-repeat;
+        filter: brightness(0.32) saturate(0.65);
+    }
+
+    body::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: -9998;
+        background: rgba(0, 0, 0, 0.55);
         pointer-events: none;
     }
 
-    .bg-mosaic img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        filter: brightness(0.28) saturate(0.7);
-    }
-
-    .bg-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 1;
-        background: radial-gradient(ellipse at center, rgba(10,10,10,0.55) 0%, rgba(10,10,10,0.88) 100%);
-        pointer-events: none;
-    }
-
-    /* ── App shell ── */
+    /* ── Strip ALL Streamlit backgrounds ── */
     .stApp,
     [data-testid="stAppViewContainer"],
+    [data-testid="stAppViewBlockContainer"],
+    [data-testid="stVerticalBlock"],
     [data-testid="stHeader"],
     [data-testid="stToolbar"],
-    section[data-testid="stSidebar"],
-    .main .block-container {
+    [data-testid="stDecoration"],
+    .main,
+    .main > div,
+    .block-container,
+    .element-container {
         background: transparent !important;
         background-color: transparent !important;
-    }
-
-    [data-testid="stAppViewContainer"] > .main {
-        position: relative;
-        z-index: 2;
     }
 
     [data-testid="stHeader"] { display: none; }
@@ -276,19 +288,6 @@ st.markdown("""
     }
 </style>
 
-<!-- Background mosaic of cars -->
-<div class="bg-mosaic">
-    <img src="https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=600&q=60" />
-    <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&q=60" />
-    <img src="https://images.unsplash.com/photo-1555353540-64580b51c258?w=600&q=60" />
-    <img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=600&q=60" />
-    <img src="https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=600&q=60" />
-    <img src="https://images.unsplash.com/photo-1542362567-b07e54358753?w=600&q=60" />
-    <img src="https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=600&q=60" />
-    <img src="https://images.unsplash.com/photo-1471479917193-f00955256257?w=600&q=60" />
-    <img src="https://images.unsplash.com/photo-1580274455191-1c62238fa333?w=600&q=60" />
-</div>
-<div class="bg-overlay"></div>
 """, unsafe_allow_html=True)
 
 client = anthropic.Anthropic(api_key=api_key)
