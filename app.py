@@ -326,6 +326,32 @@ html, body { font-family: 'DM Sans', 'Prompt', sans-serif; }
     border-bottom: 1px solid rgba(255,255,255,0.15);
 }
 
+/* ─── Claude result text → white ─── */
+[data-testid="stMarkdownContainer"] p,
+[data-testid="stMarkdownContainer"] li,
+[data-testid="stMarkdownContainer"] ul,
+[data-testid="stMarkdownContainer"] ol,
+[data-testid="stMarkdownContainer"] span {
+    color: #fff !important;
+}
+
+[data-testid="stMarkdownContainer"] strong,
+[data-testid="stMarkdownContainer"] b {
+    color: #fff !important;
+    font-weight: 600 !important;
+}
+
+[data-testid="stMarkdownContainer"] h1,
+[data-testid="stMarkdownContainer"] h2,
+[data-testid="stMarkdownContainer"] h3,
+[data-testid="stMarkdownContainer"] h4 {
+    color: #C9A84C !important;
+    font-family: 'Cormorant Garamond', serif !important;
+    border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+    padding-bottom: 0.3rem !important;
+    margin-top: 1rem !important;
+}
+
 /* ─── Spinner ─── */
 .stSpinner > div { border-top-color: #C9A84C !important; }
 
