@@ -131,27 +131,25 @@ st.markdown("""
 
     /* ── Card ── */
     .card {
-        background: rgba(255, 255, 255, 0.10);
-        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.93);
         border-top: 3px solid #D5001C;
-        backdrop-filter: blur(32px);
-        -webkit-backdrop-filter: blur(32px);
         padding: 1.8rem;
         margin-bottom: 1.5rem;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.5);
     }
 
     .card-label {
         font-size: 0.65rem;
         letter-spacing: 0.25em;
         text-transform: uppercase;
-        color: #ccc;
+        color: #999;
         margin-bottom: 1.2rem;
     }
 
     /* ── Tabs ── */
     .stTabs [data-baseweb="tab-list"] {
-        background: rgba(255, 255, 255, 0.07);
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: #f0f0f0;
+        border: 1px solid #ddd;
         border-radius: 0;
         padding: 3px;
         gap: 3px;
@@ -159,7 +157,7 @@ st.markdown("""
 
     .stTabs [data-baseweb="tab"] {
         border-radius: 0;
-        color: #ddd;
+        color: #555;
         font-family: 'Prompt', sans-serif;
         font-size: 0.85rem;
         font-weight: 400;
@@ -175,8 +173,8 @@ st.markdown("""
 
     /* ── File uploader ── */
     [data-testid="stFileUploader"] {
-        background: rgba(255,255,255,0.05);
-        border: 1.5px dashed rgba(255,255,255,0.25);
+        background: #fafafa;
+        border: 1.5px dashed #ccc;
         border-radius: 0;
         padding: 0.5rem;
         transition: border-color 0.2s;
@@ -187,7 +185,7 @@ st.markdown("""
     [data-testid="stFileUploader"] label,
     [data-testid="stFileUploader"] p,
     [data-testid="stFileUploader"] span {
-        color: #ccc !important;
+        color: #666 !important;
     }
 
     /* ── Camera ── */
@@ -196,18 +194,16 @@ st.markdown("""
     /* ── Uploaded image ── */
     [data-testid="stImage"] img {
         border-radius: 0;
-        border: 1px solid #2a2a2a;
+        border: 1px solid #ddd;
     }
 
     /* ── Result ── */
     .result-wrap {
-        background: rgba(255, 255, 255, 0.10);
-        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.93);
         border-top: 3px solid #D5001C;
-        backdrop-filter: blur(32px);
-        -webkit-backdrop-filter: blur(32px);
         padding: 2rem;
         margin-top: 1.5rem;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.5);
     }
 
     .result-eyebrow {
@@ -219,25 +215,25 @@ st.markdown("""
     }
 
     .result-wrap p, .result-wrap li {
-        color: #e0e0e0;
+        color: #333;
         line-height: 1.9;
-        font-weight: 300;
+        font-weight: 400;
     }
 
-    .result-wrap strong { color: #fff; font-weight: 600; }
+    .result-wrap strong { color: #111; font-weight: 600; }
 
     .result-wrap h1, .result-wrap h2, .result-wrap h3 {
-        color: #fff;
-        font-weight: 500;
+        color: #111;
+        font-weight: 600;
     }
 
     /* ── Tip ── */
     .tip {
         font-size: 0.78rem;
-        color: #bbb;
+        color: #888;
         margin-top: 1rem;
         padding-top: 1rem;
-        border-top: 1px solid rgba(255,255,255,0.1);
+        border-top: 1px solid #e5e5e5;
         letter-spacing: 0.02em;
     }
 
