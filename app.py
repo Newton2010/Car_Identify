@@ -194,7 +194,7 @@ html, body { font-family: 'DM Sans', 'Prompt', sans-serif; }
 
 .stTabs [data-baseweb="tab"] {
     border-radius: 2px;
-    color: #888;
+    color: #111 !important;
     font-family: 'DM Sans', sans-serif;
     font-size: 0.8rem;
     font-weight: 500;
