@@ -41,7 +41,7 @@ st.markdown("""
         width: 100%;
         height: 100%;
         object-fit: cover;
-        filter: brightness(0.18) saturate(0.6);
+        filter: brightness(0.28) saturate(0.7);
     }
 
     .bg-overlay {
@@ -87,7 +87,7 @@ st.markdown("""
 
     .topbar-tag {
         font-size: 0.65rem;
-        color: #555;
+        color: #888;
         letter-spacing: 0.22em;
         text-transform: uppercase;
     }
@@ -122,7 +122,7 @@ st.markdown("""
     }
 
     .hero-sub {
-        color: #666;
+        color: #aaa;
         font-size: 0.9rem;
         font-weight: 300;
         letter-spacing: 0.05em;
@@ -131,11 +131,11 @@ st.markdown("""
 
     /* ── Card ── */
     .card {
-        background: rgba(18, 18, 18, 0.85);
-        border: 1px solid #2a2a2a;
+        background: rgba(30, 30, 30, 0.92);
+        border: 1px solid #3a3a3a;
         border-top: 3px solid #D5001C;
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
         padding: 1.8rem;
         margin-bottom: 1.5rem;
     }
@@ -144,7 +144,7 @@ st.markdown("""
         font-size: 0.65rem;
         letter-spacing: 0.25em;
         text-transform: uppercase;
-        color: #555;
+        color: #888;
         margin-bottom: 1.2rem;
     }
 
@@ -201,11 +201,11 @@ st.markdown("""
 
     /* ── Result ── */
     .result-wrap {
-        background: rgba(18, 18, 18, 0.9);
-        border: 1px solid #2a2a2a;
+        background: rgba(30, 30, 30, 0.92);
+        border: 1px solid #3a3a3a;
         border-top: 3px solid #D5001C;
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
         padding: 2rem;
         margin-top: 1.5rem;
     }
@@ -219,7 +219,7 @@ st.markdown("""
     }
 
     .result-wrap p, .result-wrap li {
-        color: #ccc;
+        color: #e0e0e0;
         line-height: 1.9;
         font-weight: 300;
     }
@@ -234,10 +234,10 @@ st.markdown("""
     /* ── Tip ── */
     .tip {
         font-size: 0.78rem;
-        color: #444;
+        color: #777;
         margin-top: 1rem;
         padding-top: 1rem;
-        border-top: 1px solid #1e1e1e;
+        border-top: 1px solid #2a2a2a;
         letter-spacing: 0.02em;
     }
 
@@ -247,11 +247,22 @@ st.markdown("""
     /* ── Footer ── */
     .footer {
         text-align: center;
-        color: #333;
-        font-size: 0.68rem;
+        padding: 2.5rem 0 1.5rem;
+    }
+
+    .footer-credit {
+        color: #eee;
+        font-size: 0.85rem;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        margin-bottom: 0.4rem;
+    }
+
+    .footer-powered {
+        color: #444;
+        font-size: 0.65rem;
         letter-spacing: 0.2em;
         text-transform: uppercase;
-        padding: 2.5rem 0 1.5rem;
     }
 
     /* ── Error ── */
@@ -398,4 +409,9 @@ if image_data:
         except Exception as e:
             st.error(f"เกิดข้อผิดพลาด: {e}")
 
-st.markdown('<div class="footer">Powered by Claude AI &nbsp;·&nbsp; Anthropic</div>', unsafe_allow_html=True)
+st.markdown("""
+<div class="footer">
+    <div class="footer-credit">Created by Suphasan Chanthai</div>
+    <div class="footer-powered">Powered by Claude AI &nbsp;·&nbsp; Anthropic</div>
+</div>
+""", unsafe_allow_html=True)
