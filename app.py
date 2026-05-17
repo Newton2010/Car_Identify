@@ -680,7 +680,7 @@ def build_result_html(text: str) -> str:
 with st.sidebar:
     st.markdown(
         "<div style='font-size:0.6rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;"
-        "color:#999;margin-bottom:0.8rem;'>AI Model</div>",
+        "color:#C9A84C;margin-bottom:0.8rem;'>AI Model</div>",
         unsafe_allow_html=True,
     )
 
@@ -705,7 +705,7 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown(
-        "<div style='font-size:0.65rem;color:#aaa;line-height:1.7;'>"
+        "<div style='font-size:0.65rem;color:#C9A84C;line-height:1.7;'>"
         "🔒 ป้ายทะเบียนถูก blur<br>ก่อนส่งให้ AI ทุกครั้ง"
         "</div>",
         unsafe_allow_html=True,
