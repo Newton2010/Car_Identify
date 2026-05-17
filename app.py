@@ -577,6 +577,18 @@ html, body { font-family: 'DM Sans', 'Prompt', sans-serif; }
 }
 
 /* ─── Dialog styling ─── */
+[data-testid="stDialog"],
+[data-testid="stDialog"] > div,
+[data-testid="stDialog"] [data-baseweb="modal"],
+[data-testid="stDialog"] [role="dialog"],
+[data-testid="stDialog"] [data-baseweb="dialog"],
+[data-testid="stDialog"] section,
+[data-testid="stDialog"] .stMarkdown,
+[data-testid="stDialog"] [data-testid="stVerticalBlock"] {
+    background: #0d0d0d !important;
+    background-color: #0d0d0d !important;
+}
+
 [data-testid="stDialog"] [data-testid="stTextInput"] input {
     background: #0d0d0d !important;
     border: 1.5px solid rgba(201,168,76,0.4) !important;
