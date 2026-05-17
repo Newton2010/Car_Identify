@@ -753,8 +753,16 @@ def build_result_html(text: str) -> str:
                 sections.append((cur_title, cur_body[:]))
             cur_title = m.group(1).strip().rstrip(':')
             cur_body = []
-        elif line.strip() and not line.strip().startswith('#'):
-            cur_body.append(line.strip())
+        elif line.strip():
+            stripped = line.strip()
+            if stripped.startswith('#'):
+                # Sub-header inside a section (e.g. ### ราคาใหม่) — render as bold label
+                sub = re.sub(r'^#+\s*', '', stripped)
+                sub = re.sub(r'\*+', '', sub).rstrip(':').strip()
+                if sub:
+                    cur_body.append(f'**{sub}**')
+            else:
+                cur_body.append(stripped)
 
     if cur_title or cur_body:
         sections.append((cur_title, cur_body[:]))
@@ -808,14 +816,44 @@ is_premium = st.session_state["model"] == "claude-sonnet-4-6"
 
 @st.dialog("✦ Unlock Pro Mode")
 def unlock_pro():
-    st.markdown(
-        "<div style='text-align:center;padding:0.5rem 0 1.2rem;'>"
-        "<div style='font-size:0.62rem;letter-spacing:0.22em;text-transform:uppercase;"
-        "color:#C9A84C;margin-bottom:0.6rem;'>Sonnet 4.6 — Premium</div>"
-        "<div style='font-size:0.85rem;color:#666;'>ใส่รหัสผ่านเพื่อใช้ความแม่นยำสูงสุด</div>"
-        "</div>",
-        unsafe_allow_html=True,
-    )
+    st.markdown("""
+<div style='text-align:center;padding:0.4rem 0 1rem;'>
+  <div style='font-size:0.62rem;letter-spacing:0.22em;text-transform:uppercase;color:#C9A84C;margin-bottom:0.4rem;'>Sonnet 4.6 — Premium</div>
+  <div style='font-size:0.82rem;color:#888;'>ความแม่นยำสูงขึ้น วิเคราะห์ละเอียดกว่า</div>
+</div>
+<table style='width:100%;border-collapse:collapse;margin-bottom:1.2rem;font-size:0.78rem;'>
+  <tr style='border-bottom:1px solid rgba(255,255,255,0.08);'>
+    <td style='padding:0.5rem 0.4rem;color:#666;'>ฟีเจอร์</td>
+    <td style='padding:0.5rem 0.4rem;text-align:center;color:#888;'>ฟรี</td>
+    <td style='padding:0.5rem 0.4rem;text-align:center;color:#C9A84C;font-weight:600;'>Pro ✦</td>
+  </tr>
+  <tr style='border-bottom:1px solid rgba(255,255,255,0.06);'>
+    <td style='padding:0.5rem 0.4rem;color:#ccc;'>AI Model</td>
+    <td style='padding:0.5rem 0.4rem;text-align:center;color:#888;'>Haiku 4.5</td>
+    <td style='padding:0.5rem 0.4rem;text-align:center;color:#C9A84C;'>Sonnet 4.6</td>
+  </tr>
+  <tr style='border-bottom:1px solid rgba(255,255,255,0.06);'>
+    <td style='padding:0.5rem 0.4rem;color:#ccc;'>ความแม่นยำ</td>
+    <td style='padding:0.5rem 0.4rem;text-align:center;color:#888;'>ดี</td>
+    <td style='padding:0.5rem 0.4rem;text-align:center;color:#C9A84C;'>สูงมาก</td>
+  </tr>
+  <tr style='border-bottom:1px solid rgba(255,255,255,0.06);'>
+    <td style='padding:0.5rem 0.4rem;color:#ccc;'>รายละเอียด</td>
+    <td style='padding:0.5rem 0.4rem;text-align:center;color:#888;'>มาตรฐาน</td>
+    <td style='padding:0.5rem 0.4rem;text-align:center;color:#C9A84C;'>ละเอียดมาก</td>
+  </tr>
+  <tr>
+    <td style='padding:0.5rem 0.4rem;color:#ccc;'>Plate Blur</td>
+    <td style='padding:0.5rem 0.4rem;text-align:center;color:#C9A84C;'>✓</td>
+    <td style='padding:0.5rem 0.4rem;text-align:center;color:#C9A84C;'>✓</td>
+  </tr>
+</table>
+<div style='text-align:center;font-size:0.72rem;color:#666;margin-bottom:1rem;'>
+  ติดต่อขอรหัสผ่านได้ที่ Instagram
+  <a href='https://instagram.com/suphasan.sh' target='_blank'
+     style='color:#C9A84C;text-decoration:none;font-weight:600;margin-left:0.3rem;'>@suphasan.sh</a>
+</div>
+""", unsafe_allow_html=True)
     pwd = st.text_input("รหัสผ่าน", type="password", placeholder="Enter password...", label_visibility="collapsed")
     if st.button("Unlock ✦", use_container_width=True):
         if pwd == PREMIUM_PASSWORD:
