@@ -567,6 +567,48 @@ html, body { font-family: 'DM Sans', 'Prompt', sans-serif; }
     flex-shrink: 0;
 }
 
+/* ─── Dialog styling ─── */
+[data-testid="stDialog"] [data-testid="stTextInput"] input {
+    background: #0d0d0d !important;
+    border: 1.5px solid rgba(201,168,76,0.4) !important;
+    border-radius: 3px !important;
+    color: #fff !important;
+    font-size: 1rem !important;
+    font-weight: 400 !important;
+    letter-spacing: 0.08em !important;
+    padding: 0.65rem 1rem !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+[data-testid="stDialog"] [data-testid="stTextInput"] input:focus {
+    border-color: #C9A84C !important;
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.15), 0 0 12px rgba(201,168,76,0.2) !important;
+    outline: none !important;
+}
+[data-testid="stDialog"] [data-testid="stTextInput"] input::placeholder {
+    color: rgba(255,255,255,0.25) !important;
+}
+[data-testid="stDialog"] button[kind="secondary"] {
+    background: linear-gradient(
+        110deg,
+        #b8922a 0%, #C9A84C 25%, #E8C97A 50%, #C9A84C 75%, #b8922a 100%
+    ) !important;
+    background-size: 200% auto !important;
+    color: #1a1200 !important;
+    font-weight: 700 !important;
+    font-size: 0.78rem !important;
+    letter-spacing: 0.16em !important;
+    text-transform: uppercase !important;
+    border: none !important;
+    border-radius: 2px !important;
+    animation: shine 2.5s linear infinite, glow-pulse 2s ease-in-out infinite !important;
+}
+[data-testid="stDialog"] [data-baseweb="modal"] {
+    background: #111 !important;
+    border: 1px solid rgba(201,168,76,0.2) !important;
+    border-radius: 6px !important;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(201,168,76,0.1) !important;
+}
+
 /* ─── Error ─── */
 [data-testid="stAlert"] {
     background: #fff8f8 !important;
