@@ -818,7 +818,7 @@ is_premium = st.session_state["model"] == "claude-sonnet-4-6"
 def unlock_pro():
     st.markdown("""
 <div style='text-align:center;padding:0.4rem 0 1rem;'>
-  <div style='font-size:0.62rem;letter-spacing:0.22em;text-transform:uppercase;color:#C9A84C;margin-bottom:0.4rem;'>Sonnet 4.6 — Premium</div>
+  <div style='font-size:0.62rem;letter-spacing:0.22em;text-transform:uppercase;color:#C9A84C;margin-bottom:0.4rem;'>ดูรถดิ Pro — Premium</div>
   <div style='font-size:0.82rem;color:#888;'>ความแม่นยำสูงขึ้น วิเคราะห์ละเอียดกว่า</div>
 </div>
 <table style='width:100%;border-collapse:collapse;margin-bottom:1.2rem;font-size:0.78rem;'>
@@ -829,8 +829,8 @@ def unlock_pro():
   </tr>
   <tr style='border-bottom:1px solid rgba(255,255,255,0.06);'>
     <td style='padding:0.5rem 0.4rem;color:#ccc;'>AI Model</td>
-    <td style='padding:0.5rem 0.4rem;text-align:center;color:#888;'>Haiku 4.5</td>
-    <td style='padding:0.5rem 0.4rem;text-align:center;color:#C9A84C;'>Sonnet 4.6</td>
+    <td style='padding:0.5rem 0.4rem;text-align:center;color:#888;'>Standard</td>
+    <td style='padding:0.5rem 0.4rem;text-align:center;color:#C9A84C;'>Pro ✦</td>
   </tr>
   <tr style='border-bottom:1px solid rgba(255,255,255,0.06);'>
     <td style='padding:0.5rem 0.4rem;color:#ccc;'>ความแม่นยำ</td>
@@ -898,7 +898,7 @@ is_premium = st.session_state["model"] == "claude-sonnet-4-6"
 _, col_btn, _ = st.columns([2, 1, 2])
 with col_btn:
     if is_premium:
-        if st.button("✦ Sonnet 4.6  ·  Pro", use_container_width=True, key="model_btn"):
+        if st.button("✦ ดูรถดิ  Pro", use_container_width=True, key="model_btn"):
             st.session_state["model"] = "claude-haiku-4-5"
             st.rerun()
     else:
