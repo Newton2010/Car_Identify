@@ -848,7 +848,7 @@ def unlock_pro():
     <td style='padding:0.5rem 0.4rem;text-align:center;color:#C9A84C;'>✓</td>
   </tr>
 </table>
-<div style='text-align:center;font-size:0.72rem;color:#666;margin-bottom:1rem;'>
+<div style='text-align:center;font-size:0.72rem;color:#fff;margin-bottom:1rem;'>
   ติดต่อขอรหัสผ่านได้ที่ Instagram
   <a href='https://instagram.com/suphasan.sh' target='_blank'
      style='color:#C9A84C;text-decoration:none;font-weight:600;margin-left:0.3rem;'>@suphasan.sh</a>
