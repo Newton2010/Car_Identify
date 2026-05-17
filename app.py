@@ -879,7 +879,7 @@ st.markdown("""
 <div class="trust-strip">
     <div class="trust-item"><div class="trust-dot"></div>ป้ายทะเบียน blur อัตโนมัติ</div>
     <div class="trust-item"><div class="trust-dot"></div>ไม่เก็บรูปภาพ</div>
-    <div class="trust-item"><div class="trust-dot"></div>Claude AI · Anthropic</div>
+    <div class="trust-item"><div class="trust-dot"></div>AI วิเคราะห์แม่นยำ</div>
     <div class="trust-item"><div class="trust-dot"></div>รองรับรถทุกยี่ห้อทั่วโลก</div>
 </div>
 """, unsafe_allow_html=True)
@@ -887,7 +887,7 @@ st.markdown("""
 # ── Hero ──
 st.markdown("""
 <div class="hero">
-    <div class="hero-eyebrow">Powered by Claude AI</div>
+    <div class="hero-eyebrow">AI Car Intelligence</div>
     <div class="hero-title">ถ่ายรูปรถ<br><strong>รู้ทุกอย่างทันที</strong></div>
     <div class="hero-sub">วิเคราะห์รถจากรูปภาพด้วย AI — ยี่ห้อ รุ่น เครื่องยนต์ และราคาตลาดในไทย</div>
 </div>
@@ -982,6 +982,6 @@ st.markdown("""
         <div class="footer-divider-line"></div>
     </div>
     <div class="footer-name">Suphasan Chanthai</div>
-    <div class="footer-powered">Powered by Claude AI · Anthropic</div>
+    <div class="footer-powered">AI Car Identifier · ดูรถดิ</div>
 </div>
 """, unsafe_allow_html=True)
