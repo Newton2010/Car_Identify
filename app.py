@@ -1,5 +1,6 @@
 import base64
 import hashlib
+import json
 import os
 import re
 from io import BytesIO
@@ -7,7 +8,7 @@ from io import BytesIO
 import anthropic
 import streamlit as st
 from dotenv import load_dotenv
-from PIL import Image
+from PIL import Image, ImageFilter
 
 load_dotenv()
 
@@ -15,6 +16,11 @@ api_key = os.getenv("ANTHROPIC_API_KEY") or st.secrets.get("ANTHROPIC_API_KEY", 
 if not api_key:
     st.error("ไม่พบ ANTHROPIC_API_KEY — กรุณาตั้งค่าใน .env หรือ Streamlit Secrets")
     st.stop()
+
+PREMIUM_PASSWORD = os.getenv("PREMIUM_PASSWORD") or st.secrets.get("PREMIUM_PASSWORD", "")
+
+if "model" not in st.session_state:
+    st.session_state["model"] = "claude-haiku-4-5"
 
 st.set_page_config(
     page_title="ดูรถดิ — Car Identifier",
@@ -516,6 +522,14 @@ PROMPT = (
 )
 
 
+PLATE_DETECT_PROMPT = (
+    "ในรูปนี้มีป้ายทะเบียนรถไหม? ตอบด้วย JSON เท่านั้น ห้ามมีข้อความอื่น\n"
+    "ถ้ามี: {\"found\": true, \"x\": 0.35, \"y\": 0.75, \"w\": 0.20, \"h\": 0.06}\n"
+    "โดย x,y = มุมซ้ายบน, w,h = ความกว้าง/สูง ทั้งหมดเป็นสัดส่วน 0.0-1.0 ของขนาดรูป\n"
+    "ถ้าไม่มี: {\"found\": false}"
+)
+
+
 def compress_image(image_data: bytes, max_size: int = 1120) -> bytes:
     img = Image.open(BytesIO(image_data))
     img = img.convert("RGB")
@@ -529,11 +543,53 @@ def compress_image(image_data: bytes, max_size: int = 1120) -> bytes:
 
 
 @st.cache_data(show_spinner=False, max_entries=20)
-def identify_car(image_hash: str, image_data: bytes) -> str:
+def detect_and_blur_plate(image_hash: str, image_data: bytes) -> bytes:
+    img = Image.open(BytesIO(image_data)).convert("RGB")
+    w, h = img.size
+
+    small = compress_image(image_data, max_size=800)
+    image_b64 = base64.standard_b64encode(small).decode("utf-8")
+
+    try:
+        resp = client.messages.create(
+            model="claude-haiku-4-5",
+            max_tokens=80,
+            messages=[{
+                "role": "user",
+                "content": [
+                    {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": image_b64}},
+                    {"type": "text", "text": PLATE_DETECT_PROMPT},
+                ],
+            }],
+        )
+        raw = resp.content[0].text.strip()
+        # Extract JSON even if Claude adds extra text
+        json_match = re.search(r'\{.*\}', raw, re.DOTALL)
+        if json_match:
+            data = json.loads(json_match.group())
+            if data.get("found"):
+                pad = 0.015  # 1.5% padding around plate
+                x1 = max(0, int((data["x"] - pad) * w))
+                y1 = max(0, int((data["y"] - pad) * h))
+                x2 = min(w, int((data["x"] + data["w"] + pad) * w))
+                y2 = min(h, int((data["y"] + data["h"] + pad) * h))
+                region = img.crop((x1, y1, x2, y2))
+                blurred = region.filter(ImageFilter.GaussianBlur(radius=18))
+                img.paste(blurred, (x1, y1))
+    except Exception:
+        pass  # If detection fails, return original image unchanged
+
+    buf = BytesIO()
+    img.save(buf, format="JPEG", quality=88)
+    return buf.getvalue()
+
+
+@st.cache_data(show_spinner=False, max_entries=20)
+def identify_car(image_hash: str, image_data: bytes, model: str = "claude-haiku-4-5") -> str:
     compressed = compress_image(image_data)
     image_b64 = base64.standard_b64encode(compressed).decode("utf-8")
     response = client.messages.create(
-        model="claude-haiku-4-5",
+        model=model,
         max_tokens=1024,
         messages=[{
             "role": "user",
@@ -620,6 +676,41 @@ def build_result_html(text: str) -> str:
 
 
 
+# ── Sidebar: Model gate ──
+with st.sidebar:
+    st.markdown(
+        "<div style='font-size:0.6rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;"
+        "color:#999;margin-bottom:0.8rem;'>AI Model</div>",
+        unsafe_allow_html=True,
+    )
+
+    current = st.session_state["model"]
+    is_premium = current == "claude-sonnet-4-6"
+
+    if is_premium:
+        st.success("Sonnet 4.6 ✦ Premium")
+        if st.button("Switch to Haiku (free)", use_container_width=True):
+            st.session_state["model"] = "claude-haiku-4-5"
+            st.rerun()
+    else:
+        st.info("Haiku 4.5 — Standard")
+        if PREMIUM_PASSWORD:
+            pwd = st.text_input("Unlock Sonnet 4.6", type="password", placeholder="รหัสผ่าน...")
+            if pwd:
+                if pwd == PREMIUM_PASSWORD:
+                    st.session_state["model"] = "claude-sonnet-4-6"
+                    st.rerun()
+                else:
+                    st.error("รหัสผ่านไม่ถูกต้อง")
+
+    st.markdown("---")
+    st.markdown(
+        "<div style='font-size:0.65rem;color:#aaa;line-height:1.7;'>"
+        "🔒 ป้ายทะเบียนถูก blur<br>ก่อนส่งให้ AI ทุกครั้ง"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
 # ── Nav ──
 st.markdown("""
 <div class="nav">
@@ -677,18 +768,27 @@ st.markdown("""
 
 # ── Result ──
 if image_data:
-    img = Image.open(BytesIO(image_data))
-    st.image(img, use_container_width=True)
-
     try:
         image_hash = hashlib.md5(image_data).hexdigest()
 
-        if image_hash not in st.session_state:
+        # Blur plate before displaying or sending to AI
+        blur_key = f"blur_{image_hash}"
+        if blur_key not in st.session_state:
+            with st.spinner("กำลังตรวจสอบและ blur ป้ายทะเบียน..."):
+                st.session_state[blur_key] = detect_and_blur_plate(image_hash, image_data)
+
+        blurred_data = st.session_state[blur_key]
+        st.image(Image.open(BytesIO(blurred_data)), use_container_width=True)
+
+        # Identify car using blurred image
+        model = st.session_state["model"]
+        result_key = f"result_{image_hash}_{model}"
+        if result_key not in st.session_state:
             with st.spinner("กำลังวิเคราะห์รถ..."):
-                st.session_state[image_hash] = identify_car(image_hash, image_data)
+                blurred_hash = hashlib.md5(blurred_data).hexdigest()
+                st.session_state[result_key] = identify_car(blurred_hash, blurred_data, model)
 
-        result = st.session_state[image_hash]
-
+        result = st.session_state[result_key]
         st.markdown(build_result_html(result), unsafe_allow_html=True)
 
     except anthropic.AuthenticationError:
