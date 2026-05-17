@@ -519,31 +519,52 @@ html, body { font-family: 'DM Sans', 'Prompt', sans-serif; }
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="stSidebarNav"] { display: none !important; }
 
-/* ─── Pro button ─── */
-.pro-btn-wrap { display: flex; justify-content: center; margin: 0 0 2rem; }
-
-button[kind="secondary"].pro-unlock {
-    background: transparent !important;
-    border: 1px solid rgba(201,168,76,0.5) !important;
-    color: #C9A84C !important;
-    font-size: 0.72rem !important;
-    font-weight: 600 !important;
-    letter-spacing: 0.18em !important;
-    text-transform: uppercase !important;
-    padding: 0.45rem 1.8rem !important;
-    border-radius: 2px !important;
-    transition: all 0.2s !important;
-}
-button[kind="secondary"].pro-unlock:hover {
-    background: rgba(201,168,76,0.08) !important;
-    border-color: #C9A84C !important;
-}
-button[kind="secondary"].pro-active {
-    background: linear-gradient(110deg,#b8922a,#C9A84C,#E8C97A,#C9A84C,#b8922a) !important;
+/* ─── Pro button (center column) ─── */
+[data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(2) button {
+    background: linear-gradient(
+        110deg,
+        #b8922a 0%, #C9A84C 25%, #E8C97A 50%, #C9A84C 75%, #b8922a 100%
+    ) !important;
     background-size: 200% auto !important;
     color: #1a1200 !important;
+    font-weight: 700 !important;
+    font-size: 0.72rem !important;
+    letter-spacing: 0.16em !important;
+    text-transform: uppercase !important;
     border: none !important;
-    animation: shine 2.5s linear infinite !important;
+    border-radius: 2px !important;
+    animation: shine 2.5s linear infinite, glow-pulse 2s ease-in-out infinite !important;
+    transition: transform 0.15s ease, opacity 0.15s ease !important;
+}
+[data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(2) button:hover {
+    transform: scale(1.03) !important;
+    opacity: 0.92 !important;
+}
+
+/* ─── Trust badges ─── */
+.trust-strip {
+    display: flex;
+    justify-content: center;
+    gap: 1.8rem;
+    padding: 1.4rem 0 0;
+    flex-wrap: wrap;
+}
+.trust-item {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+}
+.trust-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: #C9A84C;
+    opacity: 0.7;
+    flex-shrink: 0;
 }
 
 /* ─── Error ─── */
@@ -773,6 +794,16 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+# ── Trust strip ──
+st.markdown("""
+<div class="trust-strip">
+    <div class="trust-item"><div class="trust-dot"></div>ป้ายทะเบียน blur อัตโนมัติ</div>
+    <div class="trust-item"><div class="trust-dot"></div>ไม่เก็บรูปภาพ</div>
+    <div class="trust-item"><div class="trust-dot"></div>Claude AI · Anthropic</div>
+    <div class="trust-item"><div class="trust-dot"></div>รองรับรถทุกยี่ห้อทั่วโลก</div>
+</div>
+""", unsafe_allow_html=True)
+
 # ── Hero ──
 st.markdown("""
 <div class="hero">
@@ -825,6 +856,7 @@ st.markdown("""
     <div class="card-tip">
         <div class="card-tip-icon">i</div>
         รูปที่ดีควรเห็นตัวรถชัดเจน มีแสงเพียงพอ และเห็นด้านหน้าหรือด้านข้างของรถ
+        &nbsp;·&nbsp; 🔒 ป้ายทะเบียนถูก blur ก่อนประมวลผลทุกครั้ง
     </div>
 </div>
 """, unsafe_allow_html=True)
