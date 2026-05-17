@@ -246,6 +246,39 @@ html, body { font-family: 'DM Sans', 'Prompt', sans-serif; }
 /* ─── Camera ─── */
 [data-testid="stCameraInput"] video { border-radius: 2px !important; }
 
+@keyframes shine {
+    0%   { background-position: -200% center; }
+    100% { background-position: 200% center; }
+}
+
+@keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 8px rgba(201,168,76,0.6), 0 0 20px rgba(201,168,76,0.3); }
+    50%       { box-shadow: 0 0 16px rgba(201,168,76,0.9), 0 0 40px rgba(201,168,76,0.5); }
+}
+
+[data-testid="stCameraInput"] button {
+    background: linear-gradient(
+        110deg,
+        #b8922a 0%,
+        #C9A84C 30%,
+        #E8C97A 50%,
+        #C9A84C 70%,
+        #b8922a 100%
+    ) !important;
+    background-size: 200% auto !important;
+    color: #1a1200 !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.06em !important;
+    border: none !important;
+    border-radius: 3px !important;
+    animation: shine 2.5s linear infinite, glow-pulse 2s ease-in-out infinite !important;
+    transition: transform 0.15s ease !important;
+}
+
+[data-testid="stCameraInput"] button:hover {
+    transform: scale(1.02) !important;
+}
+
 /* ─── Card footer (tip) ─── */
 .card-tip {
     display: flex;
