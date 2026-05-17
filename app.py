@@ -721,12 +721,20 @@ with st.sidebar:
     is_premium = current == "claude-sonnet-4-6"
 
     if is_premium:
-        st.success("Sonnet 4.6 ✦ Premium")
+        st.markdown(
+            "<div style='font-size:0.95rem;font-weight:600;color:#C9A84C;letter-spacing:0.04em;"
+            "padding:0.4rem 0;'>✦ Sonnet 4.6 — Premium</div>",
+            unsafe_allow_html=True,
+        )
         if st.button("Switch to Haiku (free)", use_container_width=True):
             st.session_state["model"] = "claude-haiku-4-5"
             st.rerun()
     else:
-        st.info("Haiku 4.5 — Standard")
+        st.markdown(
+            "<div style='font-size:0.95rem;font-weight:500;color:#C9A84C;letter-spacing:0.04em;"
+            "padding:0.4rem 0;'>Haiku 4.5 — Standard</div>",
+            unsafe_allow_html=True,
+        )
         if PREMIUM_PASSWORD:
             pwd = st.text_input("Unlock Sonnet 4.6", type="password", placeholder="รหัสผ่าน...")
             if pwd:
