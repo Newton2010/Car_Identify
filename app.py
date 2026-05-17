@@ -633,30 +633,27 @@ html, body { font-family: 'DM Sans', 'Prompt', sans-serif; }
 client = anthropic.Anthropic(api_key=api_key)
 
 
-PROMPT = (
-    "วิเคราะห์รูปรถนี้อย่างละเอียด โดยทำตามขั้นตอนนี้:\n\n"
-    "ข้อห้าม: ห้ามระบุ อ่าน หรือพูดถึงเลขป้ายทะเบียนรถโดยเด็ดขาด\n\n"
-    "ขั้นที่ 1 — สังเกต visual clues ก่อน:\n"
-    "- รูปทรงไฟหน้า ไฟท้าย และกระจังหน้า\n"
-    "- โปรไฟล์ตัวถัง (fastback / sedan / SUV / coupe)\n"
-    "- ลักษณะล้อและซุ้มล้อ\n"
-    "- badge หรือโลโก้ที่มองเห็น\n"
-    "- จังหวัดหรือประเทศของป้ายทะเบียน (ห้ามอ่านตัวเลข/ตัวอักษรบนป้าย)\n\n"
-    "ขั้นที่ 2 — ระบุรถและให้ข้อมูลเป็นภาษาไทย:\n\n"
-    "## 1. **ยี่ห้อและรุ่น**\n"
-    "ระบุให้ชัดที่สุด รวม generation/facelift ถ้าทราบ\n\n"
-    "## 2. **ปีที่ผลิต**\n"
-    "ปีหรือช่วงปี พร้อมบอกเหตุผลที่ใช้ระบุ\n\n"
-    "## 3. **เครื่องยนต์**\n"
-    "ชนิด ความจุ แรงม้า แรงบิด อัตราเร่ง 0-100\n\n"
-    "## 4. **ฟีเจอร์เด่น**\n"
-    "เทคโนโลยีและอุปกรณ์ที่น่าสนใจของรุ่นนี้\n\n"
-    "## 5. **ราคา**\n"
-    "ราคาใหม่และราคาตลาดมือสองในไทย\n\n"
-    "## 6. **ข้อมูลน่ารู้**\n"
-    "ประวัติหรือเรื่องน่าสนใจ\n\n"
-    "ถ้าไม่แน่ใจ 100% ให้ระบุตัวเลือกที่เป็นไปได้ 2-3 รุ่น พร้อม % ความมั่นใจแต่ละรุ่น"
-)
+PROMPT = """ข้อห้าม: ห้ามระบุหรือพูดถึงเลขป้ายทะเบียนรถโดยเด็ดขาด
+
+วิเคราะห์รถในรูปนี้เพื่อช่วยให้คนไทยเรียนรู้เรื่องรถยนต์
+ดูจาก: ไฟหน้า/ไฟท้าย กระจังหน้า โปรไฟล์ตัวถัง ล้อ badge/โลโก้
+
+ตอบเป็น JSON เท่านั้น ห้ามมีข้อความอื่นก่อนหรือหลัง JSON:
+{
+  "sections": [
+    {"title": "ยี่ห้อและรุ่น", "lines": ["ระบุยี่ห้อ รุ่น และ generation/facelift ให้ชัดเจน"]},
+    {"title": "ปีที่ผลิต",     "lines": ["ปีหรือช่วงปี พร้อมเหตุผลที่ใช้ระบุ เช่น รูปทรงไฟ"]},
+    {"title": "เครื่องยนต์",   "lines": ["ชนิด ความจุ แรงม้า แรงบิด อัตราเร่ง 0-100 กม./ชม."]},
+    {"title": "ฟีเจอร์เด่น",   "lines": ["เทคโนโลยีและอุปกรณ์ที่น่าสนใจ เน้นสิ่งที่คนไทยสนใจ"]},
+    {"title": "ราคาในไทย",     "lines": ["ราคาใหม่และราคามือสองในตลาดไทย"]},
+    {"title": "น่ารู้",         "lines": ["เรื่องน่าสนใจ ประวัติ หรือเหตุผลที่รถคันนี้พิเศษ"]}
+  ]
+}
+
+กฎ:
+- แต่ละ lines ใส่ข้อมูลจริงเป็นภาษาไทย แยกแต่ละประเด็นเป็น string ใหม่
+- ถ้าไม่มั่นใจ ให้ระบุ 2-3 ตัวเลือก พร้อม % ความมั่นใจในบรรทัดแรกของ section แรก
+- ตอบ JSON เท่านั้น"""
 
 
 PLATE_DETECT_PROMPT = (
@@ -727,7 +724,7 @@ def identify_car(image_hash: str, image_data: bytes, model: str = "claude-haiku-
     image_b64 = base64.standard_b64encode(compressed).decode("utf-8")
     response = client.messages.create(
         model=model,
-        max_tokens=1024,
+        max_tokens=1536,
         messages=[{
             "role": "user",
             "content": [
@@ -743,81 +740,70 @@ SECTION_ICONS = ["🏎", "📅", "⚙️", "⚡", "💰", "💡"]
 
 
 def build_result_html(text: str) -> str:
-    # Format: "## 1. **Title**\ncontent" or "1. **Title**: content"
-    lines = text.strip().splitlines()
     sections = []
-    cur_title, cur_body = "", []
+    try:
+        m = re.search(r'\{[\s\S]*\}', text)
+        if m:
+            sections = json.loads(m.group()).get("sections", [])
+    except Exception:
+        pass
 
-    for line in lines:
-        # Match: optional ##, digit, dot, optional **, title, optional **
-        m = re.match(r'^#{0,3}\s*\d+\.\s+\*{0,2}([^*\n]+?)\*{0,2}\s*$', line.strip())
-        # Also match inline: "1. **Title**: body text"
-        m2 = re.match(r'^#{0,3}\s*\d+\.\s+\*{1,2}([^*\n]+?)\*{1,2}[:\s]+(.*)', line.strip())
-        if m2:
-            if cur_title or cur_body:
-                sections.append((cur_title, cur_body[:]))
-            cur_title = m2.group(1).strip().rstrip(':')
-            cur_body = [m2.group(2).strip()] if m2.group(2).strip() else []
-        elif m:
-            if cur_title or cur_body:
-                sections.append((cur_title, cur_body[:]))
-            cur_title = m.group(1).strip().rstrip(':')
-            cur_body = []
-        elif line.strip():
-            stripped = line.strip()
-            if stripped.startswith('#'):
-                # Sub-header inside a section (e.g. ### ราคาใหม่) — render as bold label
-                sub = re.sub(r'^#+\s*', '', stripped)
-                sub = re.sub(r'\*+', '', sub).rstrip(':').strip()
-                if sub:
-                    cur_body.append(f'**{sub}**')
-            else:
-                cur_body.append(stripped)
-
-    if cur_title or cur_body:
-        sections.append((cur_title, cur_body[:]))
+    def line_html(ln: str) -> str:
+        ln = ln.strip()
+        if not ln:
+            return ""
+        if ln.startswith(("- ", "• ")):
+            return (
+                '<div style="display:flex;gap:0.5rem;margin:0.2rem 0;">'
+                '<span style="color:#C9A84C;flex-shrink:0;">–</span>'
+                f'<span>{ln[2:]}</span></div>'
+            )
+        return f'<div style="margin:0.25rem 0;">{ln}</div>'
 
     if not sections:
-        # Fallback: plain text
-        body = re.sub(r'\*\*(.+?)\*\*', r'<strong style="color:#fff">\1</strong>', text.replace('\n', '<br>'))
-        return f'''
-<div style="background:#111;border-radius:4px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,0.5);margin-top:1.2rem;">
-  <div style="height:3px;background:linear-gradient(90deg,#C9A84C,#E8C97A,#C9A84C);"></div>
-  <div style="padding:1.5rem;color:#e8e8e8;font-size:0.9rem;line-height:1.75;">{body}</div>
-</div>'''
-
-    def lines_to_html(body_lines):
-        parts = []
-        for ln in body_lines:
-            ln = re.sub(r'\*\*(.+?)\*\*', r'<strong style="color:#fff;font-weight:600">\1</strong>', ln)
-            if ln.startswith("- ") or ln.startswith("• "):
-                parts.append(f'<div style="display:flex;gap:0.4rem;margin:0.15rem 0;"><span style="color:#C9A84C;flex-shrink:0;">–</span><span>{ln[2:]}</span></div>')
-            else:
-                parts.append(f'<div style="margin:0.2rem 0;">{ln}</div>')
-        return "".join(parts)
+        safe = text.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;").replace("\n","<br>")
+        return (
+            '<div style="background:#111;border-radius:4px;overflow:hidden;'
+            'box-shadow:0 24px 80px rgba(0,0,0,0.5);margin-top:1.2rem;">'
+            '<div style="height:3px;background:linear-gradient(90deg,#C9A84C,#E8C97A,#C9A84C);"></div>'
+            f'<div style="padding:1.5rem;color:#e8e8e8;font-size:0.9rem;line-height:1.75;">{safe}</div>'
+            '</div>'
+        )
 
     cards = ""
-    for i, (title, body_lines) in enumerate(sections):
-        icon = SECTION_ICONS[i] if i < len(SECTION_ICONS) else "•"
-        body_html = lines_to_html(body_lines)
-        cards += f'''
-<div style="display:flex;gap:1rem;padding:1rem 0;border-bottom:1px solid rgba(255,255,255,0.07);animation:slideUp 0.5s cubic-bezier(0.22,1,0.36,1) {i*0.13:.2f}s both;">
-  <div style="flex-shrink:0;width:2.4rem;height:2.4rem;border-radius:50%;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.3);display:flex;align-items:center;justify-content:center;font-size:1rem;">{icon}</div>
-  <div style="flex:1;min-width:0;">
-    <div style="font-size:0.58rem;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:#C9A84C;margin-bottom:0.35rem;">{title}</div>
-    <div style="color:#e8e8e8;font-size:0.88rem;line-height:1.75;font-weight:300;">{body_html}</div>
-  </div>
-</div>'''
+    for i, sec in enumerate(sections):
+        icon = SECTION_ICONS[i] if i < len(SECTION_ICONS) else "●"
+        title = sec.get("title", "")
+        body = "".join(line_html(ln) for ln in sec.get("lines", []))
+        delay = f"{i * 0.12:.2f}s"
+        cards += (
+            f'<div style="display:flex;gap:1rem;padding:1rem 0;'
+            f'border-bottom:1px solid rgba(255,255,255,0.07);'
+            f'animation:slideUp 0.5s cubic-bezier(0.22,1,0.36,1) {delay} both;">'
+            f'<div style="flex-shrink:0;width:2.4rem;height:2.4rem;border-radius:50%;'
+            f'background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.3);'
+            f'display:flex;align-items:center;justify-content:center;font-size:1rem;">{icon}</div>'
+            f'<div style="flex:1;min-width:0;">'
+            f'<div style="font-size:0.58rem;font-weight:600;letter-spacing:0.22em;'
+            f'text-transform:uppercase;color:#C9A84C;margin-bottom:0.35rem;">{title}</div>'
+            f'<div style="color:#e8e8e8;font-size:0.88rem;line-height:1.75;font-weight:300;">{body}</div>'
+            f'</div></div>'
+        )
 
-    return f'''
-<div style="background:#111;border-radius:4px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,0.5);margin-top:1.2rem;">
-  <div style="height:3px;background:linear-gradient(90deg,#C9A84C,#E8C97A,#C9A84C);"></div>
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:0.9rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.08);">
-    <span style="font-size:0.6rem;font-weight:600;letter-spacing:0.28em;text-transform:uppercase;color:#888;">ผลการวิเคราะห์</span>
-    <span style="font-size:0.62rem;color:#C9A84C;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);padding:0.2rem 0.6rem;border-radius:2px;">AI Analysis</span>
-  </div>
-  <div style="padding:0.5rem 1.5rem 1.5rem;">{cards}</div>
-</div>'''
+    return (
+        '<div style="background:#111;border-radius:4px;overflow:hidden;'
+        'box-shadow:0 24px 80px rgba(0,0,0,0.5);margin-top:1.2rem;">'
+        '<div style="height:3px;background:linear-gradient(90deg,#C9A84C,#E8C97A,#C9A84C);"></div>'
+        '<div style="display:flex;align-items:center;justify-content:space-between;'
+        'padding:0.9rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.08);">'
+        '<span style="font-size:0.6rem;font-weight:600;letter-spacing:0.28em;'
+        'text-transform:uppercase;color:#888;">ผลการวิเคราะห์</span>'
+        '<span style="font-size:0.62rem;color:#C9A84C;background:rgba(201,168,76,0.08);'
+        'border:1px solid rgba(201,168,76,0.2);padding:0.2rem 0.6rem;border-radius:2px;">AI Analysis</span>'
+        '</div>'
+        f'<div style="padding:0.5rem 1.5rem 1.5rem;">{cards}</div>'
+        '</div>'
+    )
 
 
 
