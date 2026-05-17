@@ -515,6 +515,37 @@ html, body { font-family: 'DM Sans', 'Prompt', sans-serif; }
     color: rgba(255,255,255,0.18);
 }
 
+/* ─── Hide sidebar ─── */
+[data-testid="stSidebar"] { display: none !important; }
+[data-testid="stSidebarNav"] { display: none !important; }
+
+/* ─── Pro button ─── */
+.pro-btn-wrap { display: flex; justify-content: center; margin: 0 0 2rem; }
+
+button[kind="secondary"].pro-unlock {
+    background: transparent !important;
+    border: 1px solid rgba(201,168,76,0.5) !important;
+    color: #C9A84C !important;
+    font-size: 0.72rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.18em !important;
+    text-transform: uppercase !important;
+    padding: 0.45rem 1.8rem !important;
+    border-radius: 2px !important;
+    transition: all 0.2s !important;
+}
+button[kind="secondary"].pro-unlock:hover {
+    background: rgba(201,168,76,0.08) !important;
+    border-color: #C9A84C !important;
+}
+button[kind="secondary"].pro-active {
+    background: linear-gradient(110deg,#b8922a,#C9A84C,#E8C97A,#C9A84C,#b8922a) !important;
+    background-size: 200% auto !important;
+    color: #1a1200 !important;
+    border: none !important;
+    animation: shine 2.5s linear infinite !important;
+}
+
 /* ─── Error ─── */
 [data-testid="stAlert"] {
     background: #fff8f8 !important;
@@ -709,48 +740,27 @@ def build_result_html(text: str) -> str:
 
 
 
-# ── Sidebar: Model gate ──
-with st.sidebar:
+is_premium = st.session_state["model"] == "claude-sonnet-4-6"
+
+
+@st.dialog("✦ Unlock Pro Mode")
+def unlock_pro():
     st.markdown(
-        "<div style='font-size:0.6rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;"
-        "color:#C9A84C;margin-bottom:0.8rem;'>AI Model</div>",
-        unsafe_allow_html=True,
-    )
-
-    current = st.session_state["model"]
-    is_premium = current == "claude-sonnet-4-6"
-
-    if is_premium:
-        st.markdown(
-            "<div style='font-size:0.95rem;font-weight:600;color:#C9A84C;letter-spacing:0.04em;"
-            "padding:0.4rem 0;'>✦ Sonnet 4.6 — Premium</div>",
-            unsafe_allow_html=True,
-        )
-        if st.button("Switch to Haiku (free)", use_container_width=True):
-            st.session_state["model"] = "claude-haiku-4-5"
-            st.rerun()
-    else:
-        st.markdown(
-            "<div style='font-size:0.95rem;font-weight:500;color:#C9A84C;letter-spacing:0.04em;"
-            "padding:0.4rem 0;'>Haiku 4.5 — Standard</div>",
-            unsafe_allow_html=True,
-        )
-        if PREMIUM_PASSWORD:
-            pwd = st.text_input("Unlock Sonnet 4.6", type="password", placeholder="รหัสผ่าน...")
-            if pwd:
-                if pwd == PREMIUM_PASSWORD:
-                    st.session_state["model"] = "claude-sonnet-4-6"
-                    st.rerun()
-                else:
-                    st.error("รหัสผ่านไม่ถูกต้อง")
-
-    st.markdown("---")
-    st.markdown(
-        "<div style='font-size:0.65rem;color:#C9A84C;line-height:1.7;'>"
-        "🔒 ป้ายทะเบียนถูก blur<br>ก่อนส่งให้ AI ทุกครั้ง"
+        "<div style='text-align:center;padding:0.5rem 0 1.2rem;'>"
+        "<div style='font-size:0.62rem;letter-spacing:0.22em;text-transform:uppercase;"
+        "color:#C9A84C;margin-bottom:0.6rem;'>Sonnet 4.6 — Premium</div>"
+        "<div style='font-size:0.85rem;color:#666;'>ใส่รหัสผ่านเพื่อใช้ความแม่นยำสูงสุด</div>"
         "</div>",
         unsafe_allow_html=True,
     )
+    pwd = st.text_input("รหัสผ่าน", type="password", placeholder="Enter password...", label_visibility="collapsed")
+    if st.button("Unlock ✦", use_container_width=True):
+        if pwd == PREMIUM_PASSWORD:
+            st.session_state["model"] = "claude-sonnet-4-6"
+            st.rerun()
+        else:
+            st.error("รหัสผ่านไม่ถูกต้อง")
+
 
 # ── Nav ──
 st.markdown("""
@@ -771,6 +781,18 @@ st.markdown("""
     <div class="hero-sub">วิเคราะห์รถจากรูปภาพด้วย AI — ยี่ห้อ รุ่น เครื่องยนต์ และราคาตลาดในไทย</div>
 </div>
 """, unsafe_allow_html=True)
+
+# ── Pro button ──
+is_premium = st.session_state["model"] == "claude-sonnet-4-6"
+_, col_btn, _ = st.columns([2, 1, 2])
+with col_btn:
+    if is_premium:
+        if st.button("✦ Sonnet 4.6  ·  Pro", use_container_width=True, key="model_btn"):
+            st.session_state["model"] = "claude-haiku-4-5"
+            st.rerun()
+    else:
+        if st.button("Unlock Pro  ✦", use_container_width=True, key="unlock_btn"):
+            unlock_pro()
 
 # ── Main Card ──
 st.markdown("""
