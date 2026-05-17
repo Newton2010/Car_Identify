@@ -898,15 +898,17 @@ def stats_html(summary: dict) -> str:
     return f'<div class="stats-wrap">{rows}</div>'
 
 
-def create_share_card(summary: dict, sections: list) -> bytes:
+def create_share_card(summary: dict, sections: list, bg_image_data: bytes = None) -> bytes:
     from PIL import ImageDraw, ImageFont
     W, H = 900, 500
 
     def _font(size):
         for path in [
+            "/System/Library/Fonts/Helvetica.ttc",
+            "/System/Library/Fonts/Arial.ttf",
+            "/Library/Fonts/Arial Bold.ttf",
             "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
             "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
-            "/System/Library/Fonts/Helvetica.ttc",
             "C:/Windows/Fonts/arialbd.ttf",
         ]:
             try:
@@ -917,9 +919,11 @@ def create_share_card(summary: dict, sections: list) -> bytes:
 
     def _font_reg(size):
         for path in [
+            "/System/Library/Fonts/Helvetica.ttc",
+            "/System/Library/Fonts/Arial.ttf",
+            "/Library/Fonts/Arial.ttf",
             "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
             "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
-            "/System/Library/Fonts/Helvetica.ttc",
             "C:/Windows/Fonts/arial.ttf",
         ]:
             try:
@@ -930,53 +934,85 @@ def create_share_card(summary: dict, sections: list) -> bytes:
 
     GOLD  = (201, 168, 76)
     WHITE = (255, 255, 255)
-    GRAY  = (120, 120, 120)
-    DARK  = (14, 14, 14)
-    CARD  = (20, 20, 20)
+    GRAY  = (160, 160, 160)
+    DARK  = (10, 10, 10)
+    CARD  = (0, 0, 0, 160)
 
-    # ── Background gradient ──
-    img = Image.new("RGB", (W, H), DARK)
+    ML = 52  # left margin (after gold bar)
+
+    # ── Background: car photo or dark gradient ──
+    if bg_image_data:
+        try:
+            bg = Image.open(BytesIO(bg_image_data)).convert("RGB")
+            bg_ratio = bg.width / bg.height
+            canvas_ratio = W / H
+            if bg_ratio > canvas_ratio:
+                new_h = H
+                new_w = int(H * bg_ratio)
+            else:
+                new_w = W
+                new_h = int(W / bg_ratio)
+            bg = bg.resize((new_w, new_h), Image.LANCZOS)
+            left = (new_w - W) // 2
+            top = (new_h - H) // 2
+            bg = bg.crop((left, top, left + W, top + H))
+            img = bg.convert("RGBA")
+            # Uniform dark base overlay (keeps car visible)
+            dark = Image.new("RGBA", (W, H), (0, 0, 0, 178))
+            img = Image.alpha_composite(img, dark)
+            # Extra gradient on left so text is legible
+            grad = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+            gd = ImageDraw.Draw(grad)
+            for x in range(int(W * 0.65)):
+                a = int(110 * (1 - x / (W * 0.65)))
+                gd.line([(x, 0), (x, H)], fill=(0, 0, 0, a))
+            img = Image.alpha_composite(img, grad)
+            img = img.convert("RGB")
+        except Exception:
+            img = Image.new("RGB", (W, H), DARK)
+    else:
+        img = Image.new("RGB", (W, H), DARK)
+        _d = ImageDraw.Draw(img)
+        for y in range(H):
+            c = int(10 + y / H * 12)
+            _d.line([(0, y), (W, y)], fill=(c, c, c))
+
     draw = ImageDraw.Draw(img)
-    for y in range(H):
-        c = int(14 + y / H * 8)
-        draw.line([(0, y), (W, y)], fill=(c, c, c))
 
-    # ── Left gold accent bar ──
-    for x in range(8):
-        t = x / 7
-        r = int(180 + t * 52)
-        g = int(140 + t * 61)
-        b = int(50 + t * 40)
+    # ── Left gold accent bar (12px) ──
+    for x in range(12):
+        t = x / 11
+        r = int(160 + t * 62)
+        g = int(128 + t * 62)
+        b = int(40 + t * 46)
         draw.rectangle([(x, 0), (x, H)], fill=(r, g, b))
 
     # ── Type chip ──
     car_type = str(summary.get("type", "")).upper()
     if car_type and car_type != "0":
-        chip_w = len(car_type) * 9 + 24
-        draw.rectangle([(40, 44), (40 + chip_w, 66)], fill=(40, 33, 12))
-        draw.rectangle([(40, 44), (40 + chip_w, 66)], outline=GOLD, width=1)
-        draw.text((52, 48), car_type, font=_font_reg(14), fill=GOLD)
+        chip_w = len(car_type) * 11 + 28
+        draw.rectangle([(ML, 36), (ML + chip_w, 64)], fill=(30, 24, 6))
+        draw.rectangle([(ML, 36), (ML + chip_w, 64)], outline=GOLD, width=1)
+        draw.text((ML + 14, 41), car_type, font=_font_reg(18), fill=GOLD)
 
-    # ── Car name ──
+    # ── Car name (big) ──
     name = str(summary.get("english_name", "Unknown Car"))
-    # Truncate if too long
-    f_name = _font(52)
+    f_name = _font(72)
     while len(name) > 2:
         bbox = draw.textbbox((0, 0), name, font=f_name)
-        if bbox[2] < W - 80:
+        if bbox[2] < W - ML - 30:
             break
         name = name[:-1]
-    draw.text((40, 76), name, font=f_name, fill=WHITE)
+    draw.text((ML, 74), name, font=f_name, fill=WHITE)
 
     # ── Subtitle ──
-    sub = "  /  ".join(str(v) for v in [
-        summary.get("fuel"), summary.get("year")
-    ] if v and str(v) not in ("", "0"))
-    if sub:
-        draw.text((42, 144), sub, font=_font_reg(18), fill=GRAY)
+    sub_parts = [str(v) for v in [summary.get("fuel"), summary.get("year")]
+                 if v and str(v) not in ("", "0")]
+    if sub_parts:
+        draw.text((ML, 162), "  ·  ".join(sub_parts), font=_font_reg(26), fill=GRAY)
 
-    # ── Thin divider ──
-    draw.line([(40, 192), (W - 40, 192)], fill=(35, 35, 35), width=1)
+    # ── Divider ──
+    draw.line([(ML, 208), (W - 40, 208)], fill=(50, 50, 50), width=1)
 
     # ── Stat blocks ──
     stats = []
@@ -989,37 +1025,42 @@ def create_share_card(summary: dict, sections: list) -> bytes:
     try:
         p = int(summary.get("price_new_thb", 0))
         if p > 0:
-            if p >= 1_000_000:
-                stats.append(("PRICE", f"{p/1_000_000:.1f}M", "THB"))
-            else:
-                stats.append(("PRICE", f"{p//1000}K", "THB"))
+            stats.append(("PRICE", f"{p/1_000_000:.1f}M" if p >= 1_000_000 else f"{p//1000}K", "THB"))
     except Exception:
         pass
     year = str(summary.get("year", ""))
     if year and year != "0":
         stats.append(("YEAR", year, ""))
 
-    BLOCK_W, BLOCK_H = 180, 120
-    BLOCK_Y = 216
+    BLOCK_W, BLOCK_H = 196, 155
+    BLOCK_Y = 228
     for i, (label, value, unit) in enumerate(stats):
-        bx = 40 + i * (BLOCK_W + 16)
-        # Card bg
-        draw.rectangle([(bx, BLOCK_Y), (bx + BLOCK_W, BLOCK_Y + BLOCK_H)], fill=CARD)
+        bx = ML + i * (BLOCK_W + 18)
+        # Semi-transparent card bg
+        card_img = Image.new("RGBA", img.size, (0, 0, 0, 0))
+        cd = ImageDraw.Draw(card_img)
+        cd.rectangle([(bx, BLOCK_Y), (bx + BLOCK_W, BLOCK_Y + BLOCK_H)], fill=(12, 12, 12, 200))
+        img = Image.alpha_composite(img.convert("RGBA"), card_img).convert("RGB")
+        draw = ImageDraw.Draw(img)
         # Gold top strip
-        draw.rectangle([(bx, BLOCK_Y), (bx + BLOCK_W, BLOCK_Y + 3)], fill=GOLD)
+        draw.rectangle([(bx, BLOCK_Y), (bx + BLOCK_W, BLOCK_Y + 4)], fill=GOLD)
         # Label
-        draw.text((bx + 14, BLOCK_Y + 12), label, font=_font_reg(12), fill=GRAY)
+        draw.text((bx + 16, BLOCK_Y + 16), label, font=_font_reg(16), fill=(110, 110, 110))
         # Value
-        draw.text((bx + 14, BLOCK_Y + 32), value, font=_font(38), fill=GOLD)
+        draw.text((bx + 16, BLOCK_Y + 42), value, font=_font(52), fill=GOLD)
         # Unit
         if unit:
-            draw.text((bx + 14, BLOCK_Y + 82), unit, font=_font_reg(13), fill=(80, 80, 80))
+            draw.text((bx + 16, BLOCK_Y + 112), unit, font=_font_reg(17), fill=(80, 80, 80))
 
     # ── Bottom branding bar ──
-    draw.rectangle([(0, H - 52), (W, H)], fill=(10, 10, 10))
-    draw.line([(0, H - 52), (W, H - 52)], fill=(28, 28, 28), width=1)
-    draw.text((40, H - 34), "DuRotDi", font=_font(16), fill=GOLD)
-    draw.text((118, H - 31), "AI Car Identifier", font=_font_reg(13), fill=(55, 55, 55))
+    bar_img = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    bd = ImageDraw.Draw(bar_img)
+    bd.rectangle([(0, H - 58), (W, H)], fill=(0, 0, 0, 220))
+    img = Image.alpha_composite(img.convert("RGBA"), bar_img).convert("RGB")
+    draw = ImageDraw.Draw(img)
+    draw.line([(0, H - 58), (W, H - 58)], fill=(35, 35, 35), width=1)
+    draw.text((ML, H - 38), "DuRotDi", font=_font(22), fill=GOLD)
+    draw.text((ML + 148, H - 34), "AI Car Identifier", font=_font_reg(16), fill=(60, 60, 60))
 
     buf = BytesIO()
     img.save(buf, format="PNG")
@@ -1261,7 +1302,7 @@ if image_data:
 
         # Share card download
         if summary:
-            card_bytes = create_share_card(summary, sections)
+            card_bytes = create_share_card(summary, sections, blurred_data)
             st.download_button(
                 "📥 บันทึก Share Card",
                 data=card_bytes,
