@@ -577,16 +577,23 @@ html, body { font-family: 'DM Sans', 'Prompt', sans-serif; }
 }
 
 /* ─── Dialog styling ─── */
-[data-testid="stDialog"],
-[data-testid="stDialog"] > div,
-[data-testid="stDialog"] [data-baseweb="modal"],
-[data-testid="stDialog"] [role="dialog"],
-[data-testid="stDialog"] [data-baseweb="dialog"],
-[data-testid="stDialog"] section,
-[data-testid="stDialog"] .stMarkdown,
-[data-testid="stDialog"] [data-testid="stVerticalBlock"] {
+[data-testid="stDialog"] [role="dialog"] {
+    background: #0d0d0d !important;
+    border: 1px solid rgba(201,168,76,0.25) !important;
+    border-radius: 6px !important;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.85) !important;
+}
+[data-testid="stDialog"] [role="dialog"] > div,
+[data-testid="stDialog"] [role="dialog"] section {
     background: #0d0d0d !important;
     background-color: #0d0d0d !important;
+}
+[data-testid="stDialog"] button[aria-label="Close"] {
+    color: #fff !important;
+    opacity: 0.6;
+}
+[data-testid="stDialog"] button[aria-label="Close"]:hover {
+    opacity: 1;
 }
 
 [data-testid="stDialog"] [data-testid="stTextInput"] input {
