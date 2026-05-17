@@ -637,6 +637,69 @@ html, body { font-family: 'DM Sans', 'Prompt', sans-serif; }
     box-shadow: 0 24px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(201,168,76,0.1) !important;
 }
 
+/* ─── Badges ─── */
+.badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0 0.5rem;
+}
+.badge {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #C9A84C;
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.3);
+    padding: 0.28rem 0.7rem;
+    border-radius: 2px;
+}
+
+/* ─── Stats bars ─── */
+.stats-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.stat-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+.stat-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #888;
+    width: 4.5rem;
+    flex-shrink: 0;
+}
+.stat-track {
+    flex: 1;
+    height: 4px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 2px;
+    overflow: hidden;
+}
+.stat-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #C9A84C, #E8C97A);
+    border-radius: 2px;
+    transition: width 1s cubic-bezier(0.22,1,0.36,1);
+}
+.stat-value {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #C9A84C;
+    width: 5rem;
+    text-align: right;
+    flex-shrink: 0;
+}
+
 /* ─── Error ─── */
 [data-testid="stAlert"] {
     background: #fff8f8 !important;
@@ -657,22 +720,29 @@ PROMPT = """ข้อห้าม: ห้ามระบุหรือพูด
 วิเคราะห์รถในรูปนี้เพื่อช่วยให้คนไทยเรียนรู้เรื่องรถยนต์
 ดูจาก: ไฟหน้า/ไฟท้าย กระจังหน้า โปรไฟล์ตัวถัง ล้อ badge/โลโก้
 
-ตอบเป็น JSON เท่านั้น ห้ามมีข้อความอื่นก่อนหรือหลัง JSON:
+ตอบเป็น JSON เท่านั้น ห้ามมีข้อความอื่น:
 {
+  "summary": {
+    "english_name": "ชื่อรถภาษาอังกฤษ เช่น Toyota Camry 2023",
+    "type": "ประเภท เช่น Sedan / SUV / Coupe / Pickup / Van / Hatchback",
+    "year": "ปีตัวเลข เช่น 2023",
+    "fuel": "เชื้อเพลิง: Petrol / Diesel / Hybrid / EV",
+    "hp": "แรงม้าตัวเลขล้วน เช่น 150 ถ้าไม่ทราบใส่ 0",
+    "price_new_thb": "ราคาใหม่ตัวเลขล้วนไม่มี comma เช่น 1200000 ถ้าไม่ทราบใส่ 0"
+  },
   "sections": [
     {"title": "ยี่ห้อและรุ่น", "lines": ["ระบุยี่ห้อ รุ่น และ generation/facelift ให้ชัดเจน"]},
-    {"title": "ปีที่ผลิต",     "lines": ["ปีหรือช่วงปี พร้อมเหตุผลที่ใช้ระบุ เช่น รูปทรงไฟ"]},
+    {"title": "ปีที่ผลิต",     "lines": ["ปีหรือช่วงปี พร้อมเหตุผลที่ใช้ระบุ"]},
     {"title": "เครื่องยนต์",   "lines": ["ชนิด ความจุ แรงม้า แรงบิด อัตราเร่ง 0-100 กม./ชม."]},
-    {"title": "ฟีเจอร์เด่น",   "lines": ["เทคโนโลยีและอุปกรณ์ที่น่าสนใจ เน้นสิ่งที่คนไทยสนใจ"]},
+    {"title": "ฟีเจอร์เด่น",   "lines": ["เทคโนโลยีและอุปกรณ์น่าสนใจ เน้นสิ่งที่คนไทยสนใจ"]},
     {"title": "ราคาในไทย",     "lines": ["ราคาใหม่และราคามือสองในตลาดไทย"]},
     {"title": "น่ารู้",         "lines": ["เรื่องน่าสนใจ ประวัติ หรือเหตุผลที่รถคันนี้พิเศษ"]}
   ]
 }
 
-กฎ:
-- แต่ละ lines ใส่ข้อมูลจริงเป็นภาษาไทย แยกแต่ละประเด็นเป็น string ใหม่
-- ถ้าไม่มั่นใจ ให้ระบุ 2-3 ตัวเลือก พร้อม % ความมั่นใจในบรรทัดแรกของ section แรก
-- ตอบ JSON เท่านั้น"""
+กฎ: แต่ละ lines ใส่ข้อมูลจริงภาษาไทย แยกแต่ละประเด็นเป็น string ใหม่
+ถ้าไม่มั่นใจ ระบุ 2-3 ตัวเลือก พร้อม % ความมั่นใจใน sections[0].lines[0]
+ตอบ JSON เท่านั้น"""
 
 
 PLATE_DETECT_PROMPT = (
@@ -758,18 +828,168 @@ def identify_car(image_hash: str, image_data: bytes, model: str = "claude-haiku-
 SECTION_ICONS = ["🏎", "📅", "⚙️", "⚡", "💰", "💡"]
 
 
-def build_result_html(text: str) -> str:
-    sections = []
+def parse_result(text: str) -> tuple:
+    """Returns (summary_dict, sections_list). Both may be empty on failure."""
     try:
-        # Strip markdown code fences (```json ... ```)
         clean = re.sub(r'```(?:json)?\s*', '', text).strip()
         m = re.search(r'\{[\s\S]*\}', clean)
         if m:
-            # Fix trailing commas — common LLM output mistake
             json_str = re.sub(r',\s*([}\]])', r'\1', m.group())
-            sections = json.loads(json_str).get("sections", [])
+            data = json.loads(json_str)
+            return data.get("summary", {}), data.get("sections", [])
     except Exception:
         pass
+    return {}, []
+
+
+def badges_html(summary: dict) -> str:
+    if not summary:
+        return ""
+    items = []
+    for key in ("type", "year", "fuel"):
+        v = summary.get(key, "")
+        if v and str(v) != "0":
+            items.append(f'<span class="badge">{v}</span>')
+    price = summary.get("price_new_thb", 0)
+    try:
+        p = int(price)
+        if p > 0:
+            items.append(f'<span class="badge">฿{p:,}</span>')
+    except Exception:
+        pass
+    if not items:
+        return ""
+    return '<div class="badges">' + "".join(items) + '</div>'
+
+
+def stats_html(summary: dict) -> str:
+    if not summary:
+        return ""
+    rows = ""
+    try:
+        hp = int(summary.get("hp", 0))
+        if hp > 0:
+            pct = min(100, round(hp / 8))  # scale: 800 hp = 100%
+            rows += (
+                '<div class="stat-row">'
+                '<div class="stat-label">แรงม้า</div>'
+                f'<div class="stat-track"><div class="stat-fill" style="width:{pct}%"></div></div>'
+                f'<div class="stat-value">{hp} HP</div>'
+                '</div>'
+            )
+    except Exception:
+        pass
+    try:
+        price = int(summary.get("price_new_thb", 0))
+        if price > 0:
+            pct = min(100, round(price / 100000))  # scale: 10M = 100%
+            m_text = f"{price/1_000_000:.1f}M ฿"
+            rows += (
+                '<div class="stat-row">'
+                '<div class="stat-label">ราคาใหม่</div>'
+                f'<div class="stat-track"><div class="stat-fill" style="width:{pct}%"></div></div>'
+                f'<div class="stat-value">{m_text}</div>'
+                '</div>'
+            )
+    except Exception:
+        pass
+    if not rows:
+        return ""
+    return f'<div class="stats-wrap">{rows}</div>'
+
+
+def create_share_card(summary: dict, sections: list) -> bytes:
+    from PIL import ImageDraw, ImageFont
+    W, H = 800, 420
+    img = Image.new("RGB", (W, H), "#0d0d0d")
+    draw = ImageDraw.Draw(img)
+
+    # Gold gradient top bar
+    for x in range(W):
+        t = x / W
+        r = int(185 + t * 47)
+        g = int(148 + t * 53 - abs(t - 0.5) * 60)
+        b = int(56 + t * 20)
+        draw.line([(x, 0), (x, 5)], fill=(r, g, b))
+
+    # Load font — try system paths, fall back to default
+    def _font(size):
+        for path in [
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+            "/System/Library/Fonts/Helvetica.ttc",
+            "C:/Windows/Fonts/arialbd.ttf",
+        ]:
+            try:
+                return ImageFont.truetype(path, size)
+            except Exception:
+                pass
+        return ImageFont.load_default()
+
+    def _font_reg(size):
+        for path in [
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+            "/System/Library/Fonts/Helvetica.ttc",
+            "C:/Windows/Fonts/arial.ttf",
+        ]:
+            try:
+                return ImageFont.truetype(path, size)
+            except Exception:
+                pass
+        return ImageFont.load_default()
+
+    gold = (201, 168, 76)
+    white = (255, 255, 255)
+    gray = (136, 136, 136)
+
+    # App name
+    draw.text((40, 28), "DuRotDi", font=_font(18), fill=gold)
+
+    # Car name
+    name = summary.get("english_name", "Unknown Car")[:48]
+    draw.text((40, 70), name, font=_font(42), fill=white)
+
+    # Subtitle: type + fuel
+    sub = "  ·  ".join(filter(None, [summary.get("type", ""), summary.get("fuel", ""), summary.get("year", "")]))
+    draw.text((40, 128), sub, font=_font_reg(20), fill=gray)
+
+    # Divider
+    draw.line([(40, 175), (W - 40, 175)], fill=(50, 50, 50), width=1)
+
+    # Stats row
+    stats = []
+    try:
+        hp = int(summary.get("hp", 0))
+        if hp > 0:
+            stats.append(("HORSEPOWER", f"{hp} HP"))
+    except Exception:
+        pass
+    try:
+        p = int(summary.get("price_new_thb", 0))
+        if p > 0:
+            stats.append(("PRICE (NEW)", f"{p/1_000_000:.1f}M THB"))
+    except Exception:
+        pass
+    stats.append(("YEAR", summary.get("year", "N/A")))
+
+    col_w = (W - 80) // max(len(stats), 1)
+    for i, (label, value) in enumerate(stats):
+        x = 40 + i * col_w
+        draw.text((x, 200), label, font=_font_reg(13), fill=gray)
+        draw.text((x, 225), value, font=_font(28), fill=gold)
+
+    # Bottom bar
+    draw.rectangle([(0, H - 48), (W, H)], fill="#111111")
+    draw.text((40, H - 32), "ดูรถดิ · AI Car Identifier", font=_font_reg(14), fill=(80, 80, 80))
+    draw.text((W - 40, H - 32), "durotdi.streamlit.app", font=_font_reg(14), fill=(80, 80, 80), anchor="ra")
+
+    buf = BytesIO()
+    img.save(buf, format="PNG")
+    return buf.getvalue()
+
+
+def build_result_html(sections: list) -> str:
 
     def line_html(ln: str) -> str:
         ln = ln.strip()
@@ -784,12 +1004,12 @@ def build_result_html(text: str) -> str:
         return f'<div style="margin:0.25rem 0;">{ln}</div>'
 
     if not sections:
-        safe = text.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;").replace("\n","<br>")
         return (
             '<div style="background:#111;border-radius:4px;overflow:hidden;'
             'box-shadow:0 24px 80px rgba(0,0,0,0.5);margin-top:1.2rem;">'
             '<div style="height:3px;background:linear-gradient(90deg,#C9A84C,#E8C97A,#C9A84C);"></div>'
-            f'<div style="padding:1.5rem;color:#e8e8e8;font-size:0.9rem;line-height:1.75;">{safe}</div>'
+            '<div style="padding:1.5rem;color:#e8e8e8;font-size:0.9rem;line-height:1.75;">'
+            'ไม่สามารถวิเคราะห์ได้ กรุณาลองใหม่</div>'
             '</div>'
         )
 
@@ -983,7 +1203,35 @@ if image_data:
                 st.session_state[result_key] = identify_car(blurred_hash, blurred_data, model)
 
         result = st.session_state[result_key]
-        st.markdown(build_result_html(result), unsafe_allow_html=True)
+        summary, sections = parse_result(result)
+
+        # Badges
+        b_html = badges_html(summary)
+        if b_html:
+            st.markdown(b_html, unsafe_allow_html=True)
+
+        # Result cards + stats bar
+        result_html = build_result_html(sections)
+        s_html = stats_html(summary)
+        if s_html:
+            # Inject stats bar inside the result card before the section cards
+            result_html = result_html.replace(
+                '<div style="padding:0.5rem 1.5rem 1.5rem;">',
+                s_html + '<div style="padding:0.5rem 1.5rem 1.5rem;">',
+                1,
+            )
+        st.markdown(result_html, unsafe_allow_html=True)
+
+        # Share card download
+        if summary:
+            card_bytes = create_share_card(summary, sections)
+            st.download_button(
+                "📥 บันทึก Share Card",
+                data=card_bytes,
+                file_name="durotdi_car.png",
+                mime="image/png",
+                use_container_width=True,
+            )
 
     except anthropic.AuthenticationError:
         st.error("API Key ไม่ถูกต้อง กรุณาตรวจสอบ ANTHROPIC_API_KEY")
