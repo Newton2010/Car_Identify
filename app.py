@@ -243,6 +243,15 @@ html, body { font-family: 'DM Sans', 'Prompt', sans-serif; }
     font-size: 0.85rem !important;
 }
 
+[data-testid="stFileUploader"] button {
+    color: #111 !important;
+}
+
+[data-testid="stFileUploader"] button span,
+[data-testid="stFileUploader"] button p {
+    color: #111 !important;
+}
+
 /* ─── Camera ─── */
 [data-testid="stCameraInput"] video { border-radius: 2px !important; }
 
