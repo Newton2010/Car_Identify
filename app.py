@@ -847,9 +847,9 @@ def badges_html(summary: dict) -> str:
         return ""
     items = []
     for key in ("type", "year", "fuel"):
-        v = summary.get(key, "")
-        if v and str(v) != "0":
-            items.append(f'<span class="badge">{v}</span>')
+        v = summary.get(key)
+        if v and str(v) not in ("", "0"):
+            items.append(f'<span class="badge">{str(v)}</span>')
     price = summary.get("price_new_thb", 0)
     try:
         p = int(price)
@@ -947,11 +947,11 @@ def create_share_card(summary: dict, sections: list) -> bytes:
     draw.text((40, 28), "DuRotDi", font=_font(18), fill=gold)
 
     # Car name
-    name = summary.get("english_name", "Unknown Car")[:48]
+    name = str(summary.get("english_name", "Unknown Car"))[:48]
     draw.text((40, 70), name, font=_font(42), fill=white)
 
     # Subtitle: type + fuel
-    sub = "  ·  ".join(filter(None, [summary.get("type", ""), summary.get("fuel", ""), summary.get("year", "")]))
+    sub = "  ·  ".join(str(v) for v in [summary.get("type"), summary.get("fuel"), summary.get("year")] if v and str(v) not in ("", "0"))
     draw.text((40, 128), sub, font=_font_reg(20), fill=gray)
 
     # Divider
