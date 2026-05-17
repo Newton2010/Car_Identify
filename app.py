@@ -743,7 +743,7 @@ def identify_car(image_hash: str, image_data: bytes, model: str = "claude-haiku-
     image_b64 = base64.standard_b64encode(compressed).decode("utf-8")
     response = client.messages.create(
         model=model,
-        max_tokens=1536,
+        max_tokens=2048,
         messages=[{
             "role": "user",
             "content": [
@@ -761,9 +761,13 @@ SECTION_ICONS = ["🏎", "📅", "⚙️", "⚡", "💰", "💡"]
 def build_result_html(text: str) -> str:
     sections = []
     try:
-        m = re.search(r'\{[\s\S]*\}', text)
+        # Strip markdown code fences (```json ... ```)
+        clean = re.sub(r'```(?:json)?\s*', '', text).strip()
+        m = re.search(r'\{[\s\S]*\}', clean)
         if m:
-            sections = json.loads(m.group()).get("sections", [])
+            # Fix trailing commas — common LLM output mistake
+            json_str = re.sub(r',\s*([}\]])', r'\1', m.group())
+            sections = json.loads(json_str).get("sections", [])
     except Exception:
         pass
 
