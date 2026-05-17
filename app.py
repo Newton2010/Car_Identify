@@ -900,19 +900,8 @@ def stats_html(summary: dict) -> str:
 
 def create_share_card(summary: dict, sections: list) -> bytes:
     from PIL import ImageDraw, ImageFont
-    W, H = 800, 420
-    img = Image.new("RGB", (W, H), "#0d0d0d")
-    draw = ImageDraw.Draw(img)
+    W, H = 900, 500
 
-    # Gold gradient top bar
-    for x in range(W):
-        t = x / W
-        r = int(185 + t * 47)
-        g = int(148 + t * 53 - abs(t - 0.5) * 60)
-        b = int(56 + t * 20)
-        draw.line([(x, 0), (x, 5)], fill=(r, g, b))
-
-    # Load font — try system paths, fall back to default
     def _font(size):
         for path in [
             "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
@@ -939,50 +928,98 @@ def create_share_card(summary: dict, sections: list) -> bytes:
                 pass
         return ImageFont.load_default()
 
-    gold = (201, 168, 76)
-    white = (255, 255, 255)
-    gray = (136, 136, 136)
+    GOLD  = (201, 168, 76)
+    WHITE = (255, 255, 255)
+    GRAY  = (120, 120, 120)
+    DARK  = (14, 14, 14)
+    CARD  = (20, 20, 20)
 
-    # App name
-    draw.text((40, 28), "DuRotDi", font=_font(18), fill=gold)
+    # ── Background gradient ──
+    img = Image.new("RGB", (W, H), DARK)
+    draw = ImageDraw.Draw(img)
+    for y in range(H):
+        c = int(14 + y / H * 8)
+        draw.line([(0, y), (W, y)], fill=(c, c, c))
 
-    # Car name
-    name = str(summary.get("english_name", "Unknown Car"))[:48]
-    draw.text((40, 70), name, font=_font(42), fill=white)
+    # ── Left gold accent bar ──
+    for x in range(8):
+        t = x / 7
+        r = int(180 + t * 52)
+        g = int(140 + t * 61)
+        b = int(50 + t * 40)
+        draw.rectangle([(x, 0), (x, H)], fill=(r, g, b))
 
-    # Subtitle: type + fuel
-    sub = "  ·  ".join(str(v) for v in [summary.get("type"), summary.get("fuel"), summary.get("year")] if v and str(v) not in ("", "0"))
-    draw.text((40, 128), sub, font=_font_reg(20), fill=gray)
+    # ── Type chip ──
+    car_type = str(summary.get("type", "")).upper()
+    if car_type and car_type != "0":
+        chip_w = len(car_type) * 9 + 24
+        draw.rectangle([(40, 44), (40 + chip_w, 66)], fill=(40, 33, 12))
+        draw.rectangle([(40, 44), (40 + chip_w, 66)], outline=GOLD, width=1)
+        draw.text((52, 48), car_type, font=_font_reg(14), fill=GOLD)
 
-    # Divider
-    draw.line([(40, 175), (W - 40, 175)], fill=(50, 50, 50), width=1)
+    # ── Car name ──
+    name = str(summary.get("english_name", "Unknown Car"))
+    # Truncate if too long
+    f_name = _font(52)
+    while len(name) > 2:
+        bbox = draw.textbbox((0, 0), name, font=f_name)
+        if bbox[2] < W - 80:
+            break
+        name = name[:-1]
+    draw.text((40, 76), name, font=f_name, fill=WHITE)
 
-    # Stats row
+    # ── Subtitle ──
+    sub = "  /  ".join(str(v) for v in [
+        summary.get("fuel"), summary.get("year")
+    ] if v and str(v) not in ("", "0"))
+    if sub:
+        draw.text((42, 144), sub, font=_font_reg(18), fill=GRAY)
+
+    # ── Thin divider ──
+    draw.line([(40, 192), (W - 40, 192)], fill=(35, 35, 35), width=1)
+
+    # ── Stat blocks ──
     stats = []
     try:
         hp = int(summary.get("hp", 0))
         if hp > 0:
-            stats.append(("HORSEPOWER", f"{hp} HP"))
+            stats.append(("POWER", f"{hp}", "HP"))
     except Exception:
         pass
     try:
         p = int(summary.get("price_new_thb", 0))
         if p > 0:
-            stats.append(("PRICE (NEW)", f"{p/1_000_000:.1f}M THB"))
+            if p >= 1_000_000:
+                stats.append(("PRICE", f"{p/1_000_000:.1f}M", "THB"))
+            else:
+                stats.append(("PRICE", f"{p//1000}K", "THB"))
     except Exception:
         pass
-    stats.append(("YEAR", str(summary.get("year", "N/A"))))
+    year = str(summary.get("year", ""))
+    if year and year != "0":
+        stats.append(("YEAR", year, ""))
 
-    col_w = (W - 80) // max(len(stats), 1)
-    for i, (label, value) in enumerate(stats):
-        x = 40 + i * col_w
-        draw.text((x, 200), label, font=_font_reg(13), fill=gray)
-        draw.text((x, 225), value, font=_font(28), fill=gold)
+    BLOCK_W, BLOCK_H = 180, 120
+    BLOCK_Y = 216
+    for i, (label, value, unit) in enumerate(stats):
+        bx = 40 + i * (BLOCK_W + 16)
+        # Card bg
+        draw.rectangle([(bx, BLOCK_Y), (bx + BLOCK_W, BLOCK_Y + BLOCK_H)], fill=CARD)
+        # Gold top strip
+        draw.rectangle([(bx, BLOCK_Y), (bx + BLOCK_W, BLOCK_Y + 3)], fill=GOLD)
+        # Label
+        draw.text((bx + 14, BLOCK_Y + 12), label, font=_font_reg(12), fill=GRAY)
+        # Value
+        draw.text((bx + 14, BLOCK_Y + 32), value, font=_font(38), fill=GOLD)
+        # Unit
+        if unit:
+            draw.text((bx + 14, BLOCK_Y + 82), unit, font=_font_reg(13), fill=(80, 80, 80))
 
-    # Bottom bar
-    draw.rectangle([(0, H - 48), (W, H)], fill="#111111")
-    draw.text((40, H - 32), "ดูรถดิ · AI Car Identifier", font=_font_reg(14), fill=(80, 80, 80))
-    draw.text((W - 40, H - 32), "durotdi.streamlit.app", font=_font_reg(14), fill=(80, 80, 80), anchor="ra")
+    # ── Bottom branding bar ──
+    draw.rectangle([(0, H - 52), (W, H)], fill=(10, 10, 10))
+    draw.line([(0, H - 52), (W, H - 52)], fill=(28, 28, 28), width=1)
+    draw.text((40, H - 34), "DuRotDi", font=_font(16), fill=GOLD)
+    draw.text((118, H - 31), "AI Car Identifier", font=_font_reg(13), fill=(55, 55, 55))
 
     buf = BytesIO()
     img.save(buf, format="PNG")
