@@ -971,7 +971,7 @@ def create_share_card(summary: dict, sections: list) -> bytes:
             stats.append(("PRICE (NEW)", f"{p/1_000_000:.1f}M THB"))
     except Exception:
         pass
-    stats.append(("YEAR", summary.get("year", "N/A")))
+    stats.append(("YEAR", str(summary.get("year", "N/A"))))
 
     col_w = (W - 80) // max(len(stats), 1)
     for i, (label, value) in enumerate(stats):
@@ -991,8 +991,8 @@ def create_share_card(summary: dict, sections: list) -> bytes:
 
 def build_result_html(sections: list) -> str:
 
-    def line_html(ln: str) -> str:
-        ln = ln.strip()
+    def line_html(ln) -> str:
+        ln = str(ln).strip()
         if not ln:
             return ""
         if ln.startswith(("- ", "• ")):
